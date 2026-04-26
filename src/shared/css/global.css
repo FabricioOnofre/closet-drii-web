@@ -1,0 +1,170 @@
+/* --- VARIÁVEIS DE CORES (Baseadas no Instagram Closet Drii) --- */
+:root {
+    /* Paleta Principal */
+    --primary-rose: #E9B2B2;      /* Rosa principal da marca */
+    --primary-light: #F9EBEA;     /* Rosa bem clarinho para fundos */
+    --accent-gold: #D4AF37;       /* Tom para detalhes em 'Gold' */
+    --nude-cream: #F5E6DA;        /* Fundo dos posts de desconto */
+    
+    /* Cores de Feedback */
+    --success: #6DBB8B;           /* Verde suave para sucesso */
+    --error: #E74C3C;             /* Vermelho para erros */
+    --info: #3498DB;              /* Azul para informações */
+    --warning: #F1C40F;           /* Amarelo para alertas */
+
+    /* Tipografia e Neutros */
+    --text-main: #3D3D3D;         /* Cinza escuro para leitura */
+    --text-muted: #7A7A7A;        /* Cinza para textos secundários */
+    --white: #FFFFFF;
+    --black: #1A1A1A;
+
+    /* Espaçamento e Bordas */
+    --radius: 8px;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* --- RESET BÁSICO --- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+}
+
+body {
+    min-height: 100vh;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--white);
+    color: var(--text-main);
+    line-height: 1.6;
+    padding-top: 9vh; /* Compensação para o header fixo */
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
+}
+
+/* --- ESTILOS GLOBAIS REUTILIZÁVEIS --- */
+
+h1, h2, h3 {
+    color: var(--black);
+    font-weight: 600;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+    transition: 0.3s;
+}
+
+ul {
+    list-style: none;
+}
+
+img {
+    max-width: 100%;
+    display: block;
+}
+
+/* --- COMPONENTES PADRONIZADOS (Helpers) --- */
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Flexbox Helpers que você gosta */
+.flex-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.flex-between {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.flex-column {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Botões baseados na identidade */
+.btn {
+    padding: 12px 24px;
+    border-radius: var(--radius);
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    transition: transform 0.2s, background 0.3s;
+    display: inline-block;
+    text-align: center;
+}
+
+.btn:active {
+    transform: scale(0.98);
+}
+
+.btn-primary {
+    background-color: var(--primary-rose);
+    color: var(--white);
+}
+
+.btn-primary:hover {
+    background-color: #d89b9b;
+}
+
+.btn-outline {
+    background-color: transparent;
+    border: 2px solid var(--primary-rose);
+    color: var(--primary-rose);
+}
+
+/* Classes de Alerta */
+.msg-error {
+    color: var(--error);
+    font-size: 0.85rem;
+    margin-top: 5px;
+}
+
+.msg-success {
+    color: var(--success);
+    font-size: 0.85rem;
+}
+
+/* --- RESPONSIVIDADE GLOBAL --- */
+@media (max-width: 980px) {
+    .container {
+        padding: 0 16px;
+    }
+}
+
+@media (max-width: 768px) {
+    html {
+        font-size: 15px;
+    }
+
+    body {
+        padding-top: calc(9vh + 0.5rem);
+    }
+}
+
+@media (max-width: 600px) {
+    html {
+        font-size: 14px;
+    }
+
+    .container {
+        padding: 0 14px;
+    }
+}

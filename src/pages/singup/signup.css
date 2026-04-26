@@ -1,0 +1,154 @@
+/* Namespace para evitar conflitos */
+.auth-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 9vh);
+    background-color: #F2D8D5; /* Fundo suave da paleta */
+    padding: 20px;
+}
+
+.login-card {
+    background: #ffffff;
+    padding: clamp(1.8rem, 3vw, 2.5rem);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 600px;
+    border: 2px solid #D9A7A3; /* Borda usando a paleta */
+    box-shadow: 0 4px 15px rgba(191, 94, 129, 0.12);
+    text-align: center;
+}
+
+.login-card h1 {
+    color: #BF5E81;
+    font-size: clamp(1.6rem, 3vw, 2rem);
+    margin-bottom: 0.5rem;
+}
+
+.login-card p {
+    color: #555;
+    font-size: clamp(0.95rem, 1.8vw, 1rem);
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+}
+
+.input-group {
+    text-align: left;
+    margin-bottom: 1rem;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: bold;
+    color: #BF5E81;
+    font-size: 0.95rem;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid #D9A7A3;
+    border-radius: 8px;
+    box-sizing: border-box;
+    font-size: 1rem;
+}
+
+.btn-primary {
+    width: 100%;
+    padding: 14px 16px;
+    background-color: #BF5E81; /* Cor principal */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+    margin-top: 10px;
+    font-size: 1rem;
+}
+
+.btn-primary:hover {
+    background-color: #CD7068; /* Hover na paleta */
+}
+
+.login-links {
+    margin-top: 18px;
+    font-size: 0.95rem;
+}
+
+a {
+    font-size: 0.95rem;
+    color: #CD7068;
+}
+
+/* Layout responsivo para inputs */
+@media (min-width: 769px) {
+    .login-card form {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .input-group {
+        flex: 1;
+    }
+
+    .input-row {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .input-row .input-group {
+        flex: 1;
+    }
+}
+
+@media (max-width: 768px) {
+    .auth-wrapper {
+        padding: 18px 12px;
+        min-height: calc(100vh - 9vh);
+    }
+
+    .login-card {
+        padding: 1.5rem;
+        border-radius: 14px;
+        max-width: 100%;
+    }
+
+    .login-links {
+        margin-top: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .auth-wrapper {
+        padding: 14px 10px;
+    }
+
+    .login-card {
+        box-shadow: none;
+        border-width: 1px;
+    }
+
+    .login-card h1 {
+        font-size: 1.75rem;
+    }
+
+    .login-card p,
+    .login-links,
+    a,
+    .input-group label {
+        font-size: 0.95rem;
+    }
+
+    .input-group input {
+        padding: 12px 14px;
+        font-size: 0.95rem;
+    }
+
+    .btn-primary {
+        padding: 12px 14px;
+        font-size: 0.95rem;
+    }
+}

@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cadastro - JJF Solutions</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="../../shared/css/global.css" />
+    <link rel="stylesheet" href="../../shared/components/header/header.css" />
+    <link
+      rel="stylesheet"
+      href="../../shared/components/snackbar/snackbar.css"
+    />
+    <link rel="stylesheet" href="./signup.css" />
+  </head>
+  <body id="cadastro-body">
+    <main class="auth-wrapper">
+      <div class="login-card">
+        <h1>Crie sua conta</h1>
+        <p>Junte-se à Closet Drii e receba ofertas exclusivas.</p>
+
+        <form id="cadastro-form">
+          <div class="input-group">
+            <label for="name">Nome Completo</label>
+            <input
+              type="text"
+              id="name"
+              required
+              placeholder="Seu nome completo"
+            />
+          </div>
+          <div class="input-row">
+            <div class="input-group">
+              <label for="email">E-mail</label>
+              <input
+                type="email"
+                id="email"
+                required
+                placeholder="seuemail@exemplo.com"
+              />
+            </div>
+
+            <div class="input-group">
+              <label for="phone">WhatsApp / Telefone</label>
+              <input
+                type="tel"
+                id="phone"
+                required
+                placeholder="(00) 90000-0000"
+              />
+            </div>
+          </div>
+
+          <div class="input-row">
+            <div class="input-group">
+              <label for="password">Senha</label>
+              <input
+                type="password"
+                id="password"
+                required
+                placeholder="Crie uma senha forte"
+              />
+            </div>
+
+            <div class="input-group">
+              <label for="confirmPassword">Confirmar Senha</label>
+              <input
+                type="password"
+                id="confirmPassword"
+                required
+                placeholder="Repita sua senha"
+              />
+            </div>
+          </div>
+
+          <button type="submit" class="btn-primary">Finalizar Cadastro</button>
+
+          <div class="login-links">
+            <span>Já tem uma conta?</span>
+            <a href="../login/login.html">Faça login aqui</a>
+          </div>
+        </form>
+      </div>
+    </main>
+
+    <div id="snackbar-placeholder"></div>
+
+    <script src="../../utils/loader.js"></script>
+    <script type="module" src="./signup.js"></script>
+    <script
+      type="module"
+      src="../../shared/components/snackbar/snackbar.js"
+    ></script>
+    <script
+      type="module"
+      src="../../shared/components/header/header.js"
+    ></script>
+  </body>
+</html>
