@@ -1,32 +1,57 @@
 // Caminho: shared/components/snackbar/snackbar.js
 
-export function showSnackbar(message, type) {
+export function showSnackbar(message, type = "success") {
+
   const snackbarBox = document.getElementById("snackbarBox");
-  if (!snackbarBox) return; // Segurança
+
+  if (!snackbarBox) return;
 
   const snackbar = document.createElement("div");
-  snackbar.classList.add("snackbar", type);
 
-  // Ícones dependendo do tipo
+  snackbar.className = `snackbar ${type}`;
+
+  // Ícones
   const icon =
     type === "success"
-      ? "fa-check-circle"
+      ? "fa-circle-check"
       : type === "error"
-        ? "fa-times-circle"
-        : "fa-exclamation-circle";
+        ? "fa-circle-xmark"
+        : "fa-triangle-exclamation";
 
   snackbar.innerHTML = `
-        <button class="close-btn">X</button>
-        <i class="fas ${icon}"></i> &nbsp; ${message}
-    `;
+    <i class="fa-solid ${icon}"></i>
+
+    <span class="snackbar-message">
+      ${message}
+    </span>
+
+    <button class="close-btn">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  `;
 
   snackbarBox.appendChild(snackbar);
 
+  // REMOVE COM BOTÃO
   snackbar
     .querySelector(".close-btn")
-    .addEventListener("click", () => snackbar.remove());
+    .addEventListener("click", () => {
+      removeSnackbar(snackbar);
+    });
+
+  // AUTO REMOVE
+  setTimeout(() => {
+    removeSnackbar(snackbar);
+  }, 3000);
+}
+
+// FUNÇÃO REMOVER
+function removeSnackbar(snackbar) {
+
+  snackbar.style.animation =
+    "snackbarExit .3s ease forwards";
 
   setTimeout(() => {
-    if (snackbar) snackbar.remove();
-  }, 3000);
+    snackbar.remove();
+  }, 300);
 }
