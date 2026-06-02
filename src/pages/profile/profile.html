@@ -1,83 +1,116 @@
 <!doctype html>
 <html lang="pt-br">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Meu Perfil - Closet Drii</title>
-    <link rel="stylesheet" href="../../shared/css/global.css" />
-    <link rel="stylesheet" href="../../shared/components/header/header.css" />
-    <link
-      rel="stylesheet"
-      href="../../shared/components/snackbar/snackbar.css"
-    />
-    <link rel="stylesheet" href="../profile/profile.css" />
-  </head>
-  <body>
-    <main class="auth-wrapper">
-      <div class="login-card profile-card">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Meu Perfil - Closet Drii</title>
+  <link rel="stylesheet" href="../../shared/css/global.css" />
+  <link rel="stylesheet" href="../../shared/components/header/header.css" />
+  <link rel="stylesheet" href="../../shared/components/snackbar/snackbar.css" />
+  <link rel="stylesheet" href="../profile/profile.css" />
+</head>
+
+<body>
+  <main class="auth-wrapper">
+    <div class="login-card profile-card">
+
+      <div class="profile-title">
         <h1>Meu Perfil</h1>
 
-        <div class="profile-header">
-          <div class="profile-pic-container">
-            <img
-              id="profile-img"
-              src="../../../src/assets/img/logo.jpg"
-              alt="Foto de perfil"
-            />
-            <input
-              type="file"
-              id="file-input"
-              accept="image/*"
-              style="display: none"
-            />
-            <div class="edit-overlay"><i class="fas fa-camera"></i></div>
-          </div>
-          <div class="profile-info-text">
-            <h2 id="user-name-display">Nome Completo</h2>
-            <p id="user-email-display">email@exemplo.com</p>
+        <p>
+          Gerencie suas informações pessoais e mantenha seus dados atualizados.
+        </p>
+      </div>
+
+      <div class="profile-header">
+
+        <div class="profile-pic-container">
+
+          <img id="profile-img" src="../../../src/assets/img/logo.jpg" alt="Foto de perfil" />
+
+          <input type="file" id="file-input" accept="image/*" style="display:none" />
+
+          <div class="edit-overlay">
+            <i class="fas fa-camera"></i>
           </div>
         </div>
 
-        <form id="profile-form">
-          <div class="input-row">
-            <div class="input-group">
-              <label>Nome Completo</label>
+        <div class="profile-info-text">
+          <h2 id="user-name-display">
+            Nome Completo
+          </h2>
+
+          <p id="user-email-display">
+            email@exemplo.com
+          </p>
+        </div>
+      </div>
+
+      <form id="profile-form">
+
+        <div class="input-row">
+
+          <div class="input-group">
+            <label>Nome Completo</label>
+
+            <div class="input-box">
+              <i class="fa-solid fa-user"></i>
+
               <input type="text" id="name" disabled />
             </div>
           </div>
-          <div class="input-row">
-            <div class="input-group">
-              <label>E-mail</label>
+
+        </div>
+
+        <div class="input-row">
+
+          <div class="input-group">
+            <label>E-mail</label>
+
+            <div class="input-box">
+              <i class="fa-solid fa-envelope"></i>
+
               <input type="email" id="email" disabled />
             </div>
           </div>
-          <div class="input-row">
-            <div class="input-group">
-              <label>Telefone</label>
+
+        </div>
+
+        <div class="input-row">
+
+          <div class="input-group">
+            <label>Telefone</label>
+
+            <div class="input-box">
+              <i class="fa-solid fa-phone"></i>
+
               <input type="tel" id="phone" disabled />
             </div>
           </div>
 
-          <button type="button" id="edit-btn" class="btn-primary">
-            Habilitar Edição
-          </button>
-          <button
-            type="submit"
-            id="save-btn"
-            class="btn-primary"
-            style="display: none"
-          >
-            Salvar Alterações
-          </button>
-        </form>
-      </div>
-    </main>
+        </div>
 
-    <script type="module" src="./profile.js"></script>
-    <script type="module" src="../../utils/loader.js"></script>
-    <script
-      type="module"
-      src="../../shared/components/snackbar/snackbar.js"
-    ></script>
-  </body>
+        <div class="btn-group">
+
+          <button type="button" id="edit-btn" class="btn-secondary">
+            Habilitar edição
+          </button>
+
+          <button type="submit" id="save-btn" class="btn-primary" style="display:none">
+            Salvar alterações
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+  </main>
+
+  <script type="module" src="./profile.js"></script>
+  <script type="module" src="../../utils/loader.js"></script>
+  <script type="module" src="../../shared/components/snackbar/snackbar.js"></script>
+</body>
+
 </html>
