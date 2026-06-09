@@ -1,42 +1,77 @@
+import { auth } from "../../utils/firebase-config.js";
+import {
+  createUserWithEmailAndPassword,
+  updateProfile,
+} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 import { showSnackbar } from "../../shared/components/snackbar/snackbar.js";
 
-document.addEventListener('DOMContentLoaded', () => {
-    const cadastroForm = document.getElementById('cadastro-form');
+document.addEventListener("DOMContentLoaded", () => {
+  const cadastroForm = document.getElementById("cadastro-form");
 
-    cadastroForm.addEventListener("submit", (e) => {
-        e.preventDefault();
+  cadastroForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-        const name = document.getElementById("name").value;
-        const email = document.getElementById("email").value;
-        const phone = document.getElementById("phone").value;
-        const password = document.getElementById("password").value;
-        const confirmPassword = document.getElementById("confirmPassword").value;
+    const name = document.getElementById("name").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const phone = document.getElementById("phone").value.trim();
+    const password = document.getElementById("password").value;
+    const confirmPassword = document.getElementById("confirmPassword").value;
 
-        // 1. Validação de senhas
-        if (password !== confirmPassword) {
-            showSnackbar("As senhas não coincidem!", "error");
-            return;
-        }
+    if (password !== confirmPassword) {
+      showSnackbar("As senhas não coincidem!", "error");
+      return;
+    }
 
-        // 2. Simulação de salvamento no localStorage
-        const users = JSON.parse(localStorage.getItem("users") || "[]");
-        
-        // Verifica se usuário já existe
-        if (users.find(u => u.email === email)) {
-            showSnackbar("Este e-mail já está cadastrado.", "invalid");
-            return;
-        }
+    try {
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password,
+      );
 
-        // 3. Salva novo usuário
-        const newUser = { name, email, phone, password };
-        users.push(newUser);
-        localStorage.setItem("users", JSON.stringify(users));
+      if (name) {
+        await updateProfile(userCredential.user, {
+          displayName: name,
+        });
+      }
 
-        // 4. Feedback e Redirecionamento
-        showSnackbar("Cadastro realizado com sucesso!", "success");
-        
-        setTimeout(() => {
-            window.location.href = "../login/login.html";
-        }, 2000);
-    });
+      // Salva telefone e perfil básico no localStorage para compatibilidade
+      try {
+        const user = userCredential.user;
+        const profile = { uid: user.uid, name, email, phone };
+
+        const profiles = JSON.parse(
+          localStorage.getItem("userProfiles") || "{}",
+        );
+        profiles[profile.uid] = profile;
+        localStorage.setItem("userProfiles", JSON.stringify(profiles));
+      } catch (e) {
+        // falha em gravar no localStorage não impede o fluxo
+        console.warn("Não foi possível salvar o perfil localmente:", e);
+      }
+
+      showSnackbar("Cadastro realizado com sucesso!", "success");
+
+      setTimeout(() => {
+        window.location.href = "../login/login.html";
+      }, 2000);
+    } catch (error) {
+      showSnackbar(parseFirebaseAuthError(error), "invalid");
+    }
+  });
 });
+
+function parseFirebaseAuthError(error) {
+  switch (error.code) {
+    case "auth/email-already-in-use":
+      return "Este e-mail já está cadastrado.";
+    case "auth/invalid-email":
+      return "E-mail inválido.";
+    case "auth/weak-password":
+      return "Senha muito fraca. Use pelo menos 6 caracteres.";
+    case "auth/operation-not-allowed":
+      return "Cadastro de e-mail/senha não está habilitado no Firebase.";
+    default:
+      return "Falha ao criar a conta. Verifique os dados e tente novamente.";
+  }
+}

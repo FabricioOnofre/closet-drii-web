@@ -1,35 +1,55 @@
-// src/pages/login/login.js
+import { auth } from "../../utils/firebase-config.js";
+import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 import { showSnackbar } from "../../shared/components/snackbar/snackbar.js";
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
   const loginForm = document.getElementById("login-form");
 
-  // Ouve o evento de envio do formulário corretamente
-  loginForm.addEventListener("submit", (e) => {
-    e.preventDefault(); // Impede o reload da página
+  loginForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-    const email = document.getElementById("email").value;
+    const email = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value;
 
-    // Simulação de autenticação
-    const users = JSON.parse(localStorage.getItem("users") || "[]");
-    const userExists = users.find(
-      (u) => u.email === email && u.password === password,
-    );
+    try {
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password,
+      );
 
-    if (userExists) {
-      // Sucesso: mostra o snackbar e aguarda um pouco para redirecionar
+      const user = userCredential.user;
       showSnackbar("Login realizado com sucesso!", "success");
 
-      localStorage.setItem("loggedUser", JSON.stringify(userExists));
+      localStorage.setItem(
+        "loggedUser",
+        JSON.stringify({
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName || null,
+        }),
+      );
 
-      // Pequeno delay para o usuário conseguir ver o toast antes de mudar de página
       setTimeout(() => {
         window.location.href = "../home/home.html";
       }, 1500);
-    } else {
-      // Erro: mostra o snackbar de erro
-      showSnackbar("E-mail ou senha incorretos.", "invalid");
+    } catch (error) {
+      showSnackbar(parseFirebaseAuthError(error), "invalid");
     }
   });
 });
+
+function parseFirebaseAuthError(error) {
+  switch (error.code) {
+    case "auth/wrong-password":
+      return "Senha incorreta.";
+    case "auth/user-not-found":
+      return "Usuário não encontrado.";
+    case "auth/invalid-email":
+      return "E-mail inválido.";
+    case "auth/too-many-requests":
+      return "Muitas tentativas. Tente novamente mais tarde.";
+    default:
+      return "Falha ao realizar login. Verifique seus dados e tente novamente.";
+  }
+}

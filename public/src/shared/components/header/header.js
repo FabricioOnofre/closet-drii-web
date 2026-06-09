@@ -1,3 +1,9 @@
+import { auth } from "../../../utils/firebase-config.js";
+import {
+  onAuthStateChanged,
+  signOut,
+} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+
 // 1. Função que descobre a página atual e aplica a classe .active
 function aplicarLinkAtivo() {
   const caminhoAtual = window.location.pathname.toLowerCase();
@@ -33,10 +39,50 @@ function aplicarLinkAtivo() {
   return true; // Sucesso
 }
 
+// 2. Inicializa UI do header conforme estado de autenticação
+function initAuthUI() {
+  const userNameSpan = document.querySelector(".nav-container .user-name");
+  const logoutBtn = document.getElementById("logoutBtn");
+
+  const guestElems = document.querySelectorAll('[data-auth="guest"]');
+  const userElems = document.querySelectorAll('[data-auth="user"]');
+
+  function setAuthUI(isLoggedIn, user) {
+    guestElems.forEach((el) => (el.style.display = isLoggedIn ? "none" : ""));
+    userElems.forEach((el) => (el.style.display = isLoggedIn ? "" : "none"));
+
+    if (isLoggedIn && user && userNameSpan) {
+      userNameSpan.textContent = user.displayName || user.email || "Perfil";
+    }
+    if (!isLoggedIn && userNameSpan) {
+      userNameSpan.textContent = "Perfil";
+    }
+  }
+
+  onAuthStateChanged(auth, (user) => {
+    setAuthUI(!!user, user || null);
+  });
+
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", async (e) => {
+      e.preventDefault();
+      try {
+        await signOut(auth);
+        window.location.href = "../../pages/home/home.html";
+      } catch (err) {
+        console.error("Erro ao sair:", err);
+      }
+    });
+  }
+}
+
 // 2. Automação inteligente: Vigia a página para interceptar a entrada do Header
 function inicializarAutoHeader() {
   // Tenta rodar de primeira caso o Header já esteja lá
-  if (aplicarLinkAtivo()) return;
+  if (aplicarLinkAtivo()) {
+    initAuthUI();
+    return;
+  }
 
   // Se não encontrou, cria um vigia para monitorar o body do HTML
   const vigia = new MutationObserver((mutations, observer) => {
@@ -44,6 +90,7 @@ function inicializarAutoHeader() {
 
     if (menuExiste) {
       aplicarLinkAtivo(); // Aplica a classe active
+      initAuthUI(); // Configura UI conforme usuário autenticado
       observer.disconnect(); // Desliga o vigia para economizar memória do navegador
     }
   });

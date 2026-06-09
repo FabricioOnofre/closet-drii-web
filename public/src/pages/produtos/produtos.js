@@ -1,7 +1,7 @@
 import { showSnackbar } from "../../shared/components/snackbar/snackbar.js";
 import { openProductModal } from "../../shared/components/product-modal/product-modal.js";
 
-// 1. Banco de dados fictício expandido para testar os filtros
+// Banco de dados fictício
 const produtos = [
   {
     id: 1,
@@ -15,33 +15,33 @@ const produtos = [
         cor: "Rosa",
         tamanho: "P",
         estoque: 5,
-        imagem_url: "../../assets/img/logo.jpg",
+        imagem_url: "/src/assets/img/logo.jpg",
       },
       {
         cor: "Rosa",
         tamanho: "M",
         estoque: 12,
-        imagem_url: "../../assets/img/logo.jpg",
+        imagem_url: "/src/assets/img/logo.jpg",
       },
       {
         cor: "Azul",
         tamanho: "M",
         estoque: 8,
-        imagem_url: "../../assets/img/logo.jpg",
+        imagem_url: "/src/assets/img/logo.jpg",
       },
       {
         cor: "Azul",
         tamanho: "G",
         estoque: 0,
-        imagem_url: "../../assets/img/logo.jpg",
-      }, // Esgotado
+        imagem_url: "/src/assets/img/logo.jpg",
+      },
     ],
   },
   {
     id: 2,
     nome: "Calça Alfaiataria Rose",
     descricao:
-      "Calça de alfaiataria com corte reto, cintura alta e bolsos faca. Ideal para looks de trabalho ou eventos casuais chiques.",
+      "Calça de alfaiataria com corte reto, cintura alta e bolsos faca.",
     preco: 180.0,
     categoria: "Calças",
     variantes: [
@@ -49,25 +49,19 @@ const produtos = [
         cor: "Rose",
         tamanho: "M",
         estoque: 7,
-        imagem_url: "../../assets/img/logo.jpg",
+        imagem_url: "/src/assets/img/logo.jpg",
       },
       {
         cor: "Rose",
         tamanho: "G",
         estoque: 4,
-        imagem_url: "../../assets/img/logo.jpg",
+        imagem_url: "/src/assets/img/logo.jpg",
       },
       {
         cor: "Preto",
         tamanho: "P",
         estoque: 3,
-        imagem_url: "../../assets/img/logo.jpg",
-      },
-      {
-        cor: "Preto",
-        tamanho: "M",
-        estoque: 15,
-        imagem_url: "../../assets/img/logo.jpg",
+        imagem_url: "/src/assets/img/logo.jpg",
       },
     ],
   },
@@ -75,7 +69,7 @@ const produtos = [
     id: 3,
     nome: "Blusa Básica Algodão",
     descricao:
-      "Blusa t-shirt 100% algodão egípcio. Toque extremamente macio e durabilidade premium.",
+      "Blusa t-shirt 100% algodão egípcio.",
     preco: 60.0,
     categoria: "Blusas",
     variantes: [
@@ -83,165 +77,218 @@ const produtos = [
         cor: "Branco",
         tamanho: "P",
         estoque: 20,
-        imagem_url: "../../assets/img/logo.jpg",
+        imagem_url: "/src/assets/img/logo.jpg",
       },
       {
         cor: "Branco",
         tamanho: "M",
         estoque: 25,
-        imagem_url: "../../assets/img/logo.jpg",
-      },
-      {
-        cor: "Preto",
-        tamanho: "M",
-        estoque: 18,
-        imagem_url: "../../assets/img/logo.jpg",
+        imagem_url: "/src/assets/img/logo.jpg",
       },
     ],
   },
 ];
 
-// 2. Função principal de renderização (adaptada do seu exemplo)
+// Renderização
 function renderizarProdutos(lista) {
-    const container = document.getElementById('product-catalog-grid');
-    const template = document.getElementById('template-card');
-    const txtContador = document.querySelector('.products-count strong');
+  const container = document.getElementById("product-catalog-grid");
+  const template = document.getElementById("template-card");
+  const txtContador = document.querySelector(".products-count strong");
 
-    if (!container || !template) return;
+  if (!container || !template) return;
 
-    // Limpa o grid antes de renderizar a lista filtrada/ordenada
-    container.innerHTML = '';
+  container.innerHTML = "";
 
-    // Atualiza o contador de produtos encontrados
-    if (txtContador) txtContador.textContent = lista.length;
+  if (txtContador) {
+    txtContador.textContent = lista.length;
+  }
 
-    if (lista.length === 0) {
-        container.innerHTML = `<p class="no-products">Nenhum produto encontrado para os filtros selecionados.</p>`;
-        return;
-    }
+  if (lista.length === 0) {
+    container.innerHTML = `
+      <p class="no-products">
+        Nenhum produto encontrado para os filtros selecionados.
+      </p>
+    `;
+    return;
+  }
 
-    lista.forEach(produto => {
-        const clone = template.content.cloneNode(true);
+  lista.forEach((produto) => {
+    const clone = template.content.cloneNode(true);
 
-        // Formata o preço numérico para moeda local (BRL)
-        const precoFormatado = produto.preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-
-        clone.querySelector('.produto-nome').textContent = produto.nome;
-        clone.querySelector('.produto-preco').textContent = precoFormatado;
-        clone.querySelector('.produto-img').src = produto.img;
-        clone.querySelector('.produto-img').alt = produto.nome;
-
-        clone.querySelector('.add-btn').addEventListener('click', () => {
-            showSnackbar(`Adicionado: ${produto.nome}`, `success`);
-        });
-
-        clone.querySelector('.open-modal-trigger').addEventListener('click', () => {
-            openProductModal(produto); // <- Chama o modal passando o objeto do banco
-        });
-
-        container.appendChild(clone);
+    const precoFormatado = produto.preco.toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL",
     });
+
+    const imagemProduto = "../../assets/img/logo.jpg";
+
+    clone.querySelector(".produto-nome").textContent = produto.nome;
+    clone.querySelector(".produto-preco").textContent = precoFormatado;
+
+    const imagem = clone.querySelector(".produto-img");
+    imagem.src = imagemProduto;
+    imagem.alt = produto.nome;
+
+    clone.querySelector(".add-btn").addEventListener("click", () => {
+      showSnackbar(`Adicionado: ${produto.nome}`, "success");
+    });
+
+    clone
+      .querySelector(".open-modal-trigger")
+      .addEventListener("click", () => {
+        openProductModal(produto);
+      });
+
+    container.appendChild(clone);
+  });
 }
 
-// 3. Lógica de Filtros e Ordenação
+// Filtros e Ordenação
 function aplicarFiltrosEOrdenacao() {
-    let produtosFiltrados = [...produtos];
+  let produtosFiltrados = [...produtos];
 
-    // --- FILTRO: Categorias (Checkboxes) ---
-    const checkboxes = document.querySelectorAll('.filter-list input[type="checkbox"]');
-    const todosChecked = checkboxes[0]?.checked; // O primeiro checkbox é o "Todos"
+  // Categorias
+  const checkboxes = document.querySelectorAll(
+    '.filter-list input[type="checkbox"]'
+  );
 
-    // Se "Todos" não estiver marcado, filtra pelas categorias individuais selecionadas
-    if (!todosChecked) {
-        const categoriasSelecionadas = Array.from(checkboxes)
-            .filter((cb, index) => index > 0 && cb.checked) // Pula o "Todos"
-            .map(cb => cb.parentElement.textContent.trim().toLowerCase());
+  const todosChecked = checkboxes[0]?.checked;
 
-        if (categoriasSelecionadas.length > 0) {
-            produtosFiltrados = produtosFiltrados.filter(p => categoriasSelecionadas.includes(p.categoria));
-        } else {
-            // Se nenhum tiver marcado (nem o todos, nem as categorias), não mostra nada
-            produtosFiltrados = [];
-        }
+  if (!todosChecked) {
+    const categoriasSelecionadas = Array.from(checkboxes)
+      .filter((cb, index) => index > 0 && cb.checked)
+      .map((cb) =>
+        cb.parentElement.textContent.trim().toLowerCase()
+      );
+
+    if (categoriasSelecionadas.length > 0) {
+      produtosFiltrados = produtosFiltrados.filter((produto) =>
+        categoriasSelecionadas.includes(
+          produto.categoria.toLowerCase()
+        )
+      );
+    } else {
+      produtosFiltrados = [];
     }
+  }
 
-    // --- FILTRO: Preço Máximo (Slider/Range) ---
-    const sliderPreco = document.getElementById('price-slider');
-    if (sliderPreco) {
-        const precoMaximo = parseFloat(sliderPreco.value);
-        produtosFiltrados = produtosFiltrados.filter(p => p.preco <= precoMaximo);
+  // Preço
+  const sliderPreco = document.getElementById("price-slider");
+
+  if (sliderPreco) {
+    const precoMaximo = Number(sliderPreco.value);
+
+    produtosFiltrados = produtosFiltrados.filter(
+      (produto) => produto.preco <= precoMaximo
+    );
+  }
+
+  // Tamanho
+  const chipAtivo = document.querySelector(".size-chip.active");
+
+  if (chipAtivo) {
+    const tamanhoSelecionado =
+      chipAtivo.textContent.trim();
+
+    produtosFiltrados = produtosFiltrados.filter((produto) =>
+      produto.variantes.some(
+        (variante) =>
+          variante.tamanho === tamanhoSelecionado
+      )
+    );
+  }
+
+  // Ordenação
+  const selectOrdenacao =
+    document.getElementById("sort-select");
+
+  if (selectOrdenacao) {
+    switch (selectOrdenacao.value) {
+      case "price-asc":
+        produtosFiltrados.sort(
+          (a, b) => a.preco - b.preco
+        );
+        break;
+
+      case "price-desc":
+        produtosFiltrados.sort(
+          (a, b) => b.preco - a.preco
+        );
+        break;
     }
+  }
 
-    // --- FILTRO: Tamanho (Chips) ---
-    const chipAtivo = document.querySelector('.size-chip.active');
-    if (chipAtivo) {
-        const tamanhoSelecionado = chipAtivo.textContent.trim();
-        // Acessórios geralmente são tamanho Único (U), então deixamos passar caso queira
-        produtosFiltrados = produtosFiltrados.filter(p => p.tamanho === tamanhoSelecionado || p.tamanho === 'U');
-    }
-
-    // --- ORDENAÇÃO (Select) ---
-    const selectOrdenacao = document.getElementById('sort-select');
-    if (selectOrdenacao) {
-        const tipoOrdenacao = selectOrdenacao.value;
-        
-        if (tipoOrdenacao === 'price-asc') {
-            produtosFiltrados.sort((a, b) => a.preco - b.preco);
-        } else if (tipoOrdenacao === 'price-desc') {
-            produtosFiltrados.sort((a, b) => b.preco - a.preco);
-        }
-        // 'news' e 'best-sellers' manteriam a ordem original do array ou regras personalizadas
-    }
-
-    // Renderiza a lista final resultante dos filtros
-    renderizarProdutos(produtosFiltrados);
+  renderizarProdutos(produtosFiltrados);
 }
 
-// 4. Inicialização dos Ouvintes de Evento (Event Listeners)
-document.addEventListener('DOMContentLoaded', () => {
-    
-    // Inicializa a tela com todos os produtos
-    renderizarProdutos(produtos);
+// Inicialização
+document.addEventListener("DOMContentLoaded", () => {
+  renderizarProdutos(produtos);
 
-    // Ouvinte para o Slider de Preço (atualiza o texto dinamicamente e filtra)
-    const sliderPreco = document.getElementById('price-slider');
-    const txtPrecoValue = document.getElementById('price-value');
-    if (sliderPreco && txtPrecoValue) {
-        sliderPreco.addEventListener('input', (e) => {
-            const valor = parseFloat(e.target.value);
-            txtPrecoValue.textContent = `Até R$ ${valor.toFixed(2).replace('.', ',')}`;
-            aplicarFiltrosEOrdenacao();
-        });
-    }
+  const sliderPreco =
+    document.getElementById("price-slider");
 
-    // Ouvinte para as Checkboxes de Categoria
-    const checkboxes = document.querySelectorAll('.filter-list input[type="checkbox"]');
-    checkboxes.forEach((cb, index) => {
-        cb.addEventListener('change', () => {
-            // Comportamento inteligente: Se clicou em "Todos", desmarca o resto. Se clicou no resto, desmarca o "Todos".
-            if (index === 0 && cb.checked) {
-                checkboxes.forEach((otherCb, i) => { if (i > 0) otherCb.checked = false; });
-            } else if (index > 0 && cb.checked) {
-                checkboxes[0].checked = false;
-            }
-            aplicarFiltrosEOrdenacao();
-        });
+  const txtPrecoValue =
+    document.getElementById("price-value");
+
+  if (sliderPreco && txtPrecoValue) {
+    txtPrecoValue.textContent = `Até R$ ${Number(
+      sliderPreco.value
+    )
+      .toFixed(2)
+      .replace(".", ",")}`;
+
+    sliderPreco.addEventListener("input", (e) => {
+      const valor = Number(e.target.value);
+
+      txtPrecoValue.textContent = `Até R$ ${valor
+        .toFixed(2)
+        .replace(".", ",")}`;
+
+      aplicarFiltrosEOrdenacao();
     });
+  }
 
-    // Ouvinte para os botões/chips de Tamanho
-    const chipsTamanho = document.querySelectorAll('.size-chip');
-    chipsTamanho.forEach(chip => {
-        chip.addEventListener('click', () => {
-            // Remove a classe ativa dos outros e coloca no clicado
-            chipsTamanho.forEach(c => c.classList.remove('active'));
-            chip.classList.add('active');
-            aplicarFiltrosEOrdenacao();
+  const checkboxes = document.querySelectorAll(
+    '.filter-list input[type="checkbox"]'
+  );
+
+  checkboxes.forEach((checkbox, index) => {
+    checkbox.addEventListener("change", () => {
+      if (index === 0 && checkbox.checked) {
+        checkboxes.forEach((cb, i) => {
+          if (i > 0) cb.checked = false;
         });
-    });
+      } else if (index > 0 && checkbox.checked) {
+        checkboxes[0].checked = false;
+      }
 
-    // Ouvinte para a mudança no select de ordenação
-    const selectOrdenacao = document.getElementById('sort-select');
-    if (selectOrdenacao) {
-        selectOrdenacao.addEventListener('change', aplicarFiltrosEOrdenacao);
-    }
+      aplicarFiltrosEOrdenacao();
+    });
+  });
+
+  const chipsTamanho =
+    document.querySelectorAll(".size-chip");
+
+  chipsTamanho.forEach((chip) => {
+    chip.addEventListener("click", () => {
+      chipsTamanho.forEach((c) =>
+        c.classList.remove("active")
+      );
+
+      chip.classList.add("active");
+
+      aplicarFiltrosEOrdenacao();
+    });
+  });
+
+  const selectOrdenacao =
+    document.getElementById("sort-select");
+
+  if (selectOrdenacao) {
+    selectOrdenacao.addEventListener(
+      "change",
+      aplicarFiltrosEOrdenacao
+    );
+  }
 });
