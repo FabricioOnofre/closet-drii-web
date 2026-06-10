@@ -62,10 +62,7 @@ body {
         Arial,
         sans-serif;
     line-height: 1.5;
-    overflow-x: hidden;
-}
-
-/* ---------------- SCROLLBAR ---------------- */
+    overflow-x: hidden;/* ---------------- SCROLLBAR ---------------- */
 ::-webkit-scrollbar {
     width: 10px;
 }
@@ -112,29 +109,6 @@ ul {
     list-style: none;
 }
 
-/* ---------------- TIPOGRAFIA ---------------- */
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-    color: var(--text-main);
-    line-height: 1.2;
-    font-weight: 700;
-}
-
-h1 {
-    font-size: clamp(2rem, 4vw, 3.5rem);
-}
-
-h2 {
-    font-size: clamp(1.6rem, 3vw, 2.5rem);
-}
-
-h3 {
-    font-size: 1.2rem;
-}
 
 
 
@@ -144,51 +118,6 @@ h3 {
     max-width: var(--container-width);
     margin: 0 auto;
     padding: 0 24px;
-}
-
-/* ---------------- FLEX HELPERS ---------------- */
-.flex {
-    display: flex;
-}
-
-.flex-center {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.flex-between {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.flex-column {
-    display: flex;
-    flex-direction: column;
-}
-
-/* ---------------- GRID HELPERS ---------------- */
-.grid {
-    display: grid;
-}
-
-.grid-2 {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
-}
-
-.grid-3 {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-}
-
-.grid-4 {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
 }
 
 /* ---------------- BOTÕES ---------------- */
@@ -214,14 +143,21 @@ h3 {
 }
 
 .btn-primary {
-    background: var(--primary-rose);
+    background: linear-gradient(
+        135deg,
+        var(--primary),
+        var(--secondary)
+    );
     color: white;
-    box-shadow: var(--shadow-sm);
+    transition: transform .3s ease,
+                box-shadow .3s ease,
+                filter .3s ease;
 }
 
 .btn-primary:hover {
-    background: #ab4f70;
-    box-shadow: var(--shadow-md);
+    filter: brightness(1.05);
+    box-shadow: 0 16px 32px rgba(191, 94, 129, 0.3);
+    transform: translateY(-2px);
 }
 
 .btn-outline {

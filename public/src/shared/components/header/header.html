@@ -1,5 +1,5 @@
 <div class="nav-container">
-  <header id="guest">
+  <header id="site-header">
     <div class="nav-content">
       <div class="nav-left">
         <a href="../../pages/home/home.html" class="nav-logo">
@@ -12,9 +12,7 @@
         </a>
 
         <nav class="nav-menu">
-          <a href="../../pages/home/home.html" class="nav-link">
-            Home
-          </a>
+          <a href="../../pages/home/home.html" class="nav-link"> Home </a>
 
           <a href="../../pages/produtos/produtos.html" class="nav-link">
             Produtos
@@ -22,8 +20,15 @@
 
           <a href="../../pages/about/about.html" class="nav-link"> Sobre </a>
 
-          <a href="../../pages/historico/historico.html" class="nav-link">
-            Histórico
+          <a href="../../pages/cart/cart.html" class="nav-link"> Carrinho </a>
+
+          <a
+            href="../../pages/profile/profile.html"
+            class="nav-link profile-nav-link"
+            data-auth="user"
+            style="display: none"
+          >
+            Perfil
           </a>
 
           <a href="../../pages/contact/contact.html" class="nav-link">
@@ -33,18 +38,32 @@
       </div>
 
       <div class="nav-right">
-        <a href="../../pages/login/login.html" class="nav-btn secondary">
-          Login
-        </a>
+        <div class="guest-actions" data-auth="guest">
+          <a href="../../pages/login/login.html" class="nav-btn secondary">
+            Login
+          </a>
 
-        <a href="../../pages/singup/signup.html" class="nav-btn primary">
-          Cadastrar-se
-        </a>
+          <a href="../../pages/singup/signup.html" class="nav-btn primary">
+            Cadastrar-se
+          </a>
+        </div>
 
-        <a href="#" class="nav-profile-btn" title="Meu Perfil">
-          <i class="far fa-user-circle"></i>
-          <span>Perfil</span>
-        </a>
+        <div
+          class="user-actions"
+          data-auth="user"
+          style="display: none; align-items: center; gap: 12px"
+        >
+          <a
+            href="../../pages/profile/profile.html"
+            class="nav-profile-btn"
+            title="Meu Perfil"
+          >
+            <i class="far fa-user-circle"></i>
+            <span class="user-name">Perfil</span>
+          </a>
+
+          <a href="#" id="logoutBtn" class="nav-btn secondary"> Sair </a>
+        </div>
       </div>
     </div>
   </header>
