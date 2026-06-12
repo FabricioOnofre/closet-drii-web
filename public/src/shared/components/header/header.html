@@ -4,54 +4,60 @@
       <div class="nav-left">
         <a href="../../pages/home/home.html" class="nav-logo">
           <img src="../../../src/assets/ig/logo.jpg" alt="Closet Drii" />
-
           <div class="logo-text">
             <strong>Closet Drii</strong>
             <span>Fashion Store</span>
           </div>
         </a>
 
-        <nav class="nav-menu">
-          <a href="../../pages/home/home.html" class="nav-link"> Home </a>
-
-          <a href="../../pages/produtos/produtos.html" class="nav-link">
-            Produtos
-          </a>
-
-          <a href="../../pages/about/about.html" class="nav-link"> Sobre </a>
-
-          <a href="../../pages/cart/cart.html" class="nav-link"> Carrinho </a>
+        <nav class="nav-menu" id="navMenu">
+          <a href="../../pages/home/home.html" class="nav-link">Home</a>
+          <a href="../../pages/produtos/produtos.html" class="nav-link"
+            >Produtos</a
+          >
 
           <a
-            href="../../pages/profile/profile.html"
-            class="nav-link profile-nav-link"
-            data-auth="user"
-            style="display: none"
+            href="../../pages/cart/cart.html"
+            class="nav-link"
+            data-role="cliente"
+            >Carrinho</a
           >
-            Perfil
-          </a>
+          <a
+            href="../../pages/historico/historico.html"
+            class="nav-link"
+            data-role="cliente"
+            >Meus Pedidos</a
+          >
 
-          <a href="../../pages/contact/contact.html" class="nav-link">
-            Contato
-          </a>
+          <a
+            href="../../pages/admin-vendas/index.html"
+            class="nav-link"
+            data-role="admin"
+            style="display: none"
+            >Gerenciar Vendas</a
+          >
+
+          <a href="../../pages/about/about.html" class="nav-link">Sobre</a>
+          <a href="../../pages/contact/contact.html" class="nav-link"
+            >Contato</a
+          >
         </nav>
       </div>
 
       <div class="nav-right">
         <div class="guest-actions" data-auth="guest">
-          <a href="../../pages/login/login.html" class="nav-btn secondary">
-            Login
-          </a>
-
-          <a href="../../pages/singup/signup.html" class="nav-btn primary">
-            Cadastrar-se
-          </a>
+          <a href="../../pages/login/login.html" class="nav-btn secondary"
+            >Login</a
+          >
+          <a href="../../pages/singup/signup.html" class="nav-btn primary"
+            >Cadastrar-se</a
+          >
         </div>
 
         <div
           class="user-actions"
           data-auth="user"
-          style="display: none; align-items: center; gap: 12px"
+          style="display: none; align-items: center; gap: 16px"
         >
           <a
             href="../../pages/profile/profile.html"
@@ -61,9 +67,12 @@
             <i class="far fa-user-circle"></i>
             <span class="user-name">Perfil</span>
           </a>
-
-          <a href="#" id="logoutBtn" class="nav-btn secondary"> Sair </a>
+          <a href="#" id="logoutBtn" class="nav-btn secondary">Sair</a>
         </div>
+
+        <button class="menu-toggle-btn" id="menuToggle" aria-label="Abrir Menu">
+          <i class="fas fa-bars"></i>
+        </button>
       </div>
     </div>
   </header>

@@ -2,29 +2,24 @@ import { auth } from "../../../utils/firebase-config.js";
 import {
   onAuthStateChanged,
   signOut,
-} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 
-// 1. Função que descobre a página atual e aplica a classe .active
 function aplicarLinkAtivo() {
   const caminhoAtual = window.location.pathname.toLowerCase();
   const linksMenu = document.querySelectorAll(".nav-container .nav-link");
 
-  // Se o menu ainda não foi injetado pelo loader, cancela e espera o observador
   if (linksMenu.length === 0) return false;
 
   linksMenu.forEach((link) => {
     link.classList.remove("active");
-
     const hrefLink = link.getAttribute("href").toLowerCase();
     const nomeArquivo = hrefLink.substring(hrefLink.lastIndexOf("/") + 1);
 
-    // Se a URL do navegador contiver o nome do arquivo do link (ex: "home.html")
     if (caminhoAtual.includes(nomeArquivo) && nomeArquivo !== "") {
       link.classList.add("active");
     }
   });
 
-  // Tratamento especial para a raiz do Firebase ou index.html
   if (
     caminhoAtual === "/" ||
     caminhoAtual.endsWith("/index.html") ||
@@ -36,10 +31,9 @@ function aplicarLinkAtivo() {
     if (homeLink) homeLink.classList.add("active");
   }
 
-  return true; // Sucesso
+  return true;
 }
 
-// 2. Inicializa UI do header conforme estado de autenticação
 function initAuthUI() {
   const userNameSpan = document.querySelector(".nav-container .user-name");
   const logoutBtn = document.getElementById("logoutBtn");
@@ -47,15 +41,48 @@ function initAuthUI() {
   const guestElems = document.querySelectorAll('[data-auth="guest"]');
   const userElems = document.querySelectorAll('[data-auth="user"]');
 
-  function setAuthUI(isLoggedIn, user) {
-    guestElems.forEach((el) => (el.style.display = isLoggedIn ? "none" : ""));
-    userElems.forEach((el) => (el.style.display = isLoggedIn ? "" : "none"));
+  // Seletores das permissões de rotas no menu
+  const clientLinks = document.querySelectorAll(
+    '.nav-container .nav-link[data-role="cliente"]',
+  );
+  const adminLinks = document.querySelectorAll(
+    '.nav-container .nav-link[data-role="admin"]',
+  );
 
-    if (isLoggedIn && user && userNameSpan) {
-      userNameSpan.textContent = user.displayName || user.email || "Perfil";
-    }
-    if (!isLoggedIn && userNameSpan) {
-      userNameSpan.textContent = "Perfil";
+  function setAuthUI(isLoggedIn, user) {
+    guestElems.forEach(
+      (el) => (el.style.display = isLoggedIn ? "none" : "flex"),
+    );
+    userElems.forEach(
+      (el) => (el.style.display = isLoggedIn ? "flex" : "none"),
+    );
+
+    // Lógica de diferenciação de links por perfil de banco de dados
+    if (isLoggedIn) {
+      const loggedUserRaw = localStorage.getItem("loggedUser");
+      if (loggedUserRaw) {
+        const dadosUsuario = JSON.parse(loggedUserRaw);
+
+        if (dadosUsuario.perfil === "admin") {
+          // Se for admin, oculta carrinho/pedidos e exibe painel admin
+          clientLinks.forEach((el) => (el.style.display = "none"));
+          adminLinks.forEach((el) => (el.style.display = "flex"));
+        } else {
+          // Se for cliente comum
+          clientLinks.forEach((el) => (el.style.display = "flex"));
+          adminLinks.forEach((el) => (el.style.display = "none"));
+        }
+      }
+
+      if (userNameSpan && user) {
+        userNameSpan.textContent =
+          user.displayName || user.email.split("@")[0] || "Perfil";
+      }
+    } else {
+      // Se estiver deslogado, mostra apenas os links de cliente comuns (vitrine/carrinho local)
+      clientLinks.forEach((el) => (el.style.display = "flex"));
+      adminLinks.forEach((el) => (el.style.display = "none"));
+      if (userNameSpan) userNameSpan.textContent = "Perfil";
     }
   }
 
@@ -68,6 +95,7 @@ function initAuthUI() {
       e.preventDefault();
       try {
         await signOut(auth);
+        localStorage.removeItem("loggedUser"); // Limpa sessão local estruturada
         window.location.href = "../../pages/home/home.html";
       } catch (err) {
         console.error("Erro ao sair:", err);
@@ -76,29 +104,64 @@ function initAuthUI() {
   }
 }
 
-// 2. Automação inteligente: Vigia a página para interceptar a entrada do Header
+// 🌟 NOVA FUNÇÃO: Controle do menu Hamburguer Mobile
+function setupMobileMenu() {
+  const menuToggle = document.getElementById("menuToggle");
+  const navMenu = document.getElementById("navMenu");
+
+  if (!menuToggle || !navMenu) return;
+
+  menuToggle.addEventListener("click", (e) => {
+    e.stopPropagation();
+    navMenu.classList.toggle("open");
+
+    // Troca o ícone de hambúrguer (bars) para fechar (times)
+    const icone = menuToggle.querySelector("i");
+    if (navMenu.classList.contains("open")) {
+      icone.className = "fas fa-times";
+    } else {
+      icone.className = "fas fa-bars";
+    }
+  });
+
+  // Fecha o menu caso o usuário clique em qualquer link
+  document.querySelectorAll(".nav-container .nav-link").forEach((link) => {
+    link.addEventListener("click", () => {
+      navMenu.classList.remove("open");
+      menuToggle.querySelector("i").className = "fas fa-bars";
+    });
+  });
+
+  // Fecha o menu se clicar em qualquer lugar fora dele na tela
+  document.addEventListener("click", (e) => {
+    if (!navMenu.contains(e.target) && !menuToggle.contains(e.target)) {
+      navMenu.classList.remove("open");
+      menuToggle.querySelector("i").className = "fas fa-bars";
+    }
+  });
+}
+
 function inicializarAutoHeader() {
-  // Tenta rodar de primeira caso o Header já esteja lá
   if (aplicarLinkAtivo()) {
     initAuthUI();
+    setupMobileMenu();
     return;
   }
 
-  // Se não encontrou, cria um vigia para monitorar o body do HTML
   const vigia = new MutationObserver((mutations, observer) => {
     const menuExiste = document.querySelector(".nav-container .nav-menu");
 
     if (menuExiste) {
-      aplicarLinkAtivo(); // Aplica a classe active
-      initAuthUI(); // Configura UI conforme usuário autenticado
-      observer.disconnect(); // Desliga o vigia para economizar memória do navegador
+      aplicarLinkAtivo();
+      initAuthUI();
+      setupMobileMenu(); // Inicia a escuta do click mobile
+      observer.disconnect();
     }
   });
 
   vigia.observe(document.body, { childList: true, subtree: true });
 }
 
-// Inicializa o processo
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", inicializarAutoHeader);
 } else {
