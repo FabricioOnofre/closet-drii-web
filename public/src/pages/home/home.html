@@ -5,25 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Closet Drii | Moda Feminina</title>
     <link rel="stylesheet" href="../../shared/css/global.css" />
-    <link rel="stylesheet" href="../../shared/components/header/header.css" />
-    <link
-      rel="stylesheet"
-      href="../../shared/components/snackbar/snackbar.css"
-    />
-    <link
-      rel="stylesheet"
-      href="../../shared/components/product-modal/product-modal.css"
-    />
-
     <link rel="stylesheet" href="./home.css" />
   </head>
 
   <body>
     <main class="home-wrapper">
-      <!-- HERO -->
       <section class="hero-section">
         <div class="hero-content">
-          <span class="hero-badge"> Nova coleção 2026 </span>
+          <span class="hero-badge">Nova coleção 2026</span>
           <h1>Elegância que combina com seu style.</h1>
           <p>
             Descubra peças modernas, femininas e exclusivas para transformar seu
@@ -53,31 +42,6 @@
         </div>
       </section>
 
-      <!-- SEARCH -->
-      <section class="search-section">
-        <div class="search-header">
-          <h2>Encontre seu look ideal</h2>
-          <p>Busque por estilos, peças, cores ou tendências.</p>
-        </div>
-
-        <div class="search-box">
-          <input
-            type="text"
-            placeholder="Buscar vestidos, conjuntos, blusas..."
-          />
-          <button><i class="fas fa-search"></i></button>
-        </div>
-
-        <div class="quick-search">
-          <button class="chip active">Vestidos</button>
-          <button class="chip">Calças</button>
-          <button class="chip">Blusas</button>
-          <button class="chip">Conjuntos</button>
-          <button class="chip">Acessórios</button>
-        </div>
-      </section>
-
-      <!-- BANNER -->
       <section class="promo-banner">
         <div>
           <span>OFERTA EXCLUSIVA</span>
@@ -89,7 +53,6 @@
         </button>
       </section>
 
-      <!-- PRODUTOS -->
       <section class="products-section">
         <div class="section-title">
           <h2>Destaques da Semana</h2>
@@ -103,7 +66,6 @@
         </div>
         <div id="product-offer" class="product-grid"></div>
 
-        <!-- TEMPLATE DO CARD ATUALIZADO PARA SUPORTAR O MODAL -->
         <template id="template-card">
           <div class="product-card-component">
             <div
@@ -111,15 +73,15 @@
               style="cursor: pointer"
             >
               <div class="image-wrapper">
-                <img class="produto-img" src="" alt="" />
-                <span class="product-badge"> Novo </span>
+                <img class="produto-img" src="" alt="Produto" />
+                <span class="product-badge">Novo</span>
               </div>
               <div class="card-info">
                 <h3 class="produto-nome"></h3>
                 <p class="produto-preco"></p>
               </div>
             </div>
-            <button class="add-btn">Adicionar ao carrinho</button>
+            <button class="add-btn">Ver Detalhes</button>
           </div>
         </template>
       </section>
@@ -128,14 +90,6 @@
     <div id="snackbar-placeholder"></div>
 
     <script type="module" src="../../utils/loader.js"></script>
-    <script
-      type="module"
-      src="../../shared/components/header/header.js"
-    ></script>
-    <script
-      type="module"
-      src="../../shared/components/snackbar/snackbar.js"
-    ></script>
     <script type="module" src="./home.js"></script>
   </body>
 </html>

@@ -1,117 +1,154 @@
 <!doctype html>
 <html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Meu Perfil | Closet Drii</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="../../shared/css/global.css" />
+    <link rel="stylesheet" href="./profile.css" />
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Meu Perfil - Closet Drii</title>
-  <link rel="stylesheet" href="../../shared/css/global.css" />
-  <link rel="stylesheet" href="../../shared/components/header/header.css" />
-  <link rel="stylesheet" href="../../shared/components/snackbar/snackbar.css" />
-  <link rel="stylesheet" href="../profile/profile.css" />
-</head>
-
-<body>
-  <main class="auth-wrapper">
-    <div class="login-card profile-card">
-
-      <div class="profile-title">
-        <h1>Meu Perfil</h1>
-
-        <p>
-          Gerencie suas informações pessoais e mantenha seus dados atualizados.
-        </p>
-      </div>
-
-      <div class="profile-header">
-
-        <div class="profile-pic-container">
-
-          <img id="profile-img" src="../../../src/assets/img/logo.jpg" alt="Foto de perfil" />
-
-          <input type="file" id="file-input" accept="image/*" style="display:none" />
-
-          <div class="edit-overlay">
-            <i class="fas fa-camera"></i>
-          </div>
-        </div>
-
-        <div class="profile-info-text">
-          <h2 id="user-name-display">
-            Nome Completo
-          </h2>
-
-          <p id="user-email-display">
-            email@exemplo.com
-          </p>
-        </div>
-      </div>
-
-      <form id="profile-form">
-
-        <div class="input-row">
-
-          <div class="input-group">
-            <label>Nome Completo</label>
-
-            <div class="input-box">
-              <i class="fa-solid fa-user"></i>
-
-              <input type="text" id="name" disabled />
+  <body>
+    <main class="products-wrapper profile-page-layout">
+      <aside class="profile-sidebar">
+        <div class="sidebar-user-info">
+          <div class="profile-pic-container">
+            <img
+              id="profile-img"
+              src="../../../src/assets/img/logo.jpg"
+              alt="Foto de perfil"
+            />
+            <input
+              type="file"
+              id="file-input"
+              accept="image/*"
+              style="display: none"
+            />
+            <div class="edit-overlay" title="Alterar foto">
+              <i class="fas fa-camera"></i>
             </div>
           </div>
-
+          <h2 id="user-name-display">Carregando...</h2>
+          <p id="user-email-display">email@exemplo.com</p>
         </div>
 
-        <div class="input-row">
+        <nav class="sidebar-menu">
+          <a href="#dados" class="sidebar-link active">
+            <i class="fas fa-user-cog"></i> Meus Dados Pessoais
+          </a>
+          <a href="../historico/historico.html" class="sidebar-link">
+            <i class="fas fa-shopping-bag"></i> Meus Pedidos
+          </a>
+          <a href="#" id="sidebar-logout-btn" class="sidebar-link logout-link">
+            <i class="fas fa-sign-out-alt"></i> Sair da Conta
+          </a>
+        </nav>
+      </aside>
 
-          <div class="input-group">
-            <label>E-mail</label>
-
-            <div class="input-box">
-              <i class="fa-solid fa-envelope"></i>
-
-              <input type="email" id="email" disabled />
-            </div>
+      <section class="profile-content-area">
+        <div class="profile-card">
+          <div class="profile-title">
+            <h1>Dados Pessoais</h1>
+            <p>
+              Gerencie suas informações cadastrais e mantenha sua conta
+              atualizada de forma segura.
+            </p>
           </div>
 
-        </div>
+          <form id="profile-form">
+            <div class="input-row">
+              <div class="input-group">
+                <label for="name">Nome Completo</label>
+                <div class="input-box">
+                  <i class="fa-solid fa-user"></i>
+                  <input type="text" id="name" disabled required />
+                </div>
+              </div>
 
-        <div class="input-row">
-
-          <div class="input-group">
-            <label>Telefone</label>
-
-            <div class="input-box">
-              <i class="fa-solid fa-phone"></i>
-
-              <input type="tel" id="phone" disabled />
+              <div class="input-group">
+                <label for="email">E-mail</label>
+                <div class="input-box">
+                  <i class="fa-solid fa-envelope"></i>
+                  <input type="email" id="email" disabled required />
+                </div>
+              </div>
             </div>
-          </div>
 
+            <div class="input-row">
+              <div class="input-group">
+                <label for="phone">Telefone / WhatsApp</label>
+                <div class="input-box">
+                  <i class="fa-solid fa-phone"></i>
+                  <input
+                    type="tel"
+                    id="phone"
+                    placeholder="(19) 99999-9999"
+                    disabled
+                  />
+                </div>
+              </div>
+
+              <div class="input-group">
+                <label for="cpf">CPF</label>
+                <div class="input-box">
+                  <i class="fa-solid fa-id-card"></i>
+                  <input
+                    type="text"
+                    id="cpf"
+                    placeholder="000.000.000-00"
+                    disabled
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="input-row">
+              <div class="input-group">
+                <label for="dt_nascimento">Data de Nascimento</label>
+                <div class="input-box">
+                  <i class="fa-solid fa-calendar-days"></i>
+                  <input type="date" id="dt_nascimento" disabled />
+                </div>
+              </div>
+
+              <div class="input-group">
+                <label for="genero">Gênero</label>
+                <div class="input-box select-box">
+                  <i class="fa-solid fa-venus-mars"></i>
+                  <select id="genero" disabled>
+                    <option value="N/I">Prefiro não informar</option>
+                    <option value="F">Feminino</option>
+                    <option value="M">Masculino</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="btn-group">
+              <button type="button" id="edit-btn" class="btn-secondary">
+                <i class="fas fa-edit"></i> Habilitar Edição
+              </button>
+              <button
+                type="submit"
+                id="save-btn"
+                class="btn-primary"
+                style="display: none"
+              >
+                <i class="fas fa-save"></i> Salvar Alterações
+              </button>
+            </div>
+          </form>
         </div>
+      </section>
+    </main>
 
-        <div class="btn-group">
+    <div id="snackbar-placeholder"></div>
 
-          <button type="button" id="edit-btn" class="btn-secondary">
-            Habilitar edição
-          </button>
-
-          <button type="submit" id="save-btn" class="btn-primary" style="display:none">
-            Salvar alterações
-          </button>
-
-        </div>
-
-      </form>
-
-    </div>
-  </main>
-
-  <script type="module" src="./profile.js"></script>
-  <script type="module" src="../../utils/loader.js"></script>
-  <script type="module" src="../../shared/components/header/header.js"></script>
-  <script type="module" src="../../shared/components/snackbar/snackbar.js"></script>
-</body>
-
+    <script type="module" src="../../utils/loader.js"></script>
+    <script type="module" src="./profile.js"></script>
+  </body>
 </html>

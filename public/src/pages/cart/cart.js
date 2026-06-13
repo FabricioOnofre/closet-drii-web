@@ -1,169 +1,242 @@
 import { showSnackbar } from "../../shared/components/snackbar/snackbar.js";
-import { database } from "../../utils/firebase-config.js";
-
-// Importações necessárias do Firestore SDK
+import { database, auth } from "../../utils/firebase-config.js";
 import {
   doc,
-  getDoc,
-  setDoc,
   runTransaction,
-  collection,
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
-const CART_STORAGE_KEY = "closetDrii_cart";
+const CART_STORAGE_KEY = "carrinho";
 let itensCarrinho = getCartFromStorage();
 
+// Recupera os dados do carrinho salvos no navegador de forma segura
 function getCartFromStorage() {
-  const dados = localStorage.getItem(CART_STORAGE_KEY);
-  return dados ? JSON.parse(dados) : [];
+  try {
+    const dados = localStorage.getItem(CART_STORAGE_KEY);
+    return dados ? JSON.parse(dados) : [];
+  } catch (e) {
+    console.error("Erro ao ler localStorage:", e);
+    return [];
+  }
 }
 
+// Persiste o estado atual do carrinho no localStorage
+// Mantém os produtos disponíveis mesmo após o usuário atualizar a página
 function salvarCarrinhoNoStorage() {
   localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(itensCarrinho));
 }
 
+// Adiciona um produto ao carrinho mantendo a regra de não duplicar variantes iguais
+// Caso o item já exista, apenas incrementa sua quantidade
 export function adicionarAoCarrinho(novoItem) {
   itensCarrinho = getCartFromStorage();
+
+  // Procura se já existe uma variante igual adicionada no carrinho
   const itemExistente = itensCarrinho.find(
     (item) => item.id_variante === novoItem.id_variante,
   );
 
+  // Se já existe, aumenta a quantidade comprada
   if (itemExistente) {
     itemExistente.quantidade += novoItem.quantidade || 1;
-  } else {
+  }
+  // Caso seja um novo produto, adiciona na lista
+  else {
     itensCarrinho.push(novoItem);
   }
 
   salvarCarrinhoNoStorage();
+
+  // Feedback visual para o usuário confirmando a ação
   showSnackbar(`${novoItem.nome} adicionado ao carrinho!`, "success");
 }
 
+// Renderiza os produtos atuais do carrinho na interface
+// Usa templates HTML e fragmentos para evitar várias alterações no DOM
 function renderizarCarrinho() {
   const listContainer = document.getElementById("cart-items-container");
   const emptyMessage = document.getElementById("empty-cart-message");
   const template = document.getElementById("template-cart-item");
 
+  // Validação para evitar erro caso a página não tenha os elementos esperados
   if (!listContainer || !template) return;
 
-  listContainer.innerHTML = "";
-
+  // Caso não existam produtos, exibe o estado vazio do carrinho
   if (itensCarrinho.length === 0) {
+    listContainer.innerHTML = "";
     listContainer.style.display = "none";
+
     if (emptyMessage) emptyMessage.style.display = "block";
+
     atualizarResumoFinanceiro();
     return;
   }
 
+  // Caso existam produtos, mostra a lista e esconde mensagem vazia
   listContainer.style.display = "flex";
   if (emptyMessage) emptyMessage.style.display = "none";
 
+  // Cria tudo em memória antes de inserir no DOM
+  // Evita múltiplos reflows e melhora performance
+  const fragment = document.createDocumentFragment();
+
   itensCarrinho.forEach((item) => {
+    // Clona o template para criar um novo card de produto
     const clone = template.content.cloneNode(true);
+
+    // Calcula o subtotal daquele item específico
     const subtotalItem = item.preco * item.quantidade;
 
+    // Guarda o ID da variante no elemento raiz
+    // Permite identificar qual produto foi clicado usando delegação de eventos
+    const cardRoot =
+      clone.querySelector(".cart-item-card") || clone.firstElementChild;
+    if (cardRoot) cardRoot.dataset.idVariante = item.id_variante;
+
+    // Preenche os dados do produto no HTML
     clone.querySelector(".cart-nome").textContent = item.nome;
     clone.querySelector(".cart-cor").textContent = item.cor;
     clone.querySelector(".cart-tamanho").textContent = item.tamanho;
 
+    // Atualiza imagem do produto com fallback caso não exista
     const imgElement = clone.querySelector(".cart-img");
     if (imgElement) {
       imgElement.src = item.imagem_url || "../../assets/img/logo.jpg";
       imgElement.alt = item.nome;
     }
 
+    // Define quantidade inicial no input
     const qtyInput = clone.querySelector(".cart-qty-input");
     if (qtyInput) qtyInput.value = item.quantidade;
 
+    // Mostra preço unitário formatado
     clone.querySelector(".cart-preco-unitario").textContent =
       `Unid: ${item.preco.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`;
 
+    // Mostra subtotal do produto considerando quantidade
     clone.querySelector(".cart-subtotal-item").textContent =
       subtotalItem.toLocaleString("pt-BR", {
         style: "currency",
         currency: "BRL",
       });
 
-    clone.querySelector(".btn-qty-minus").addEventListener("click", () => {
+    fragment.appendChild(clone);
+  });
+
+  // Atualiza a tela de uma vez com todos os produtos renderizados
+  listContainer.innerHTML = "";
+  listContainer.appendChild(fragment);
+  atualizarResumoFinanceiro();
+}
+
+// Configura os eventos dos botões do carrinho usando delegação
+// Assim existe apenas um listener para todos os produtos renderizados
+function configurarOuvinteCarrinho() {
+  const listContainer = document.getElementById("cart-items-container");
+  if (!listContainer) return;
+
+  listContainer.addEventListener("click", (e) => {
+    // Descobre qual botão foi clicado
+    const target = e.target;
+
+    // Encontra o card do produto clicado
+    const card = target.closest("[data-id-variante]");
+    if (!card) return;
+
+    const idVariante = card.dataset.idVariante;
+
+    // Busca o produto correspondente dentro do estado do carrinho
+    const item = itensCarrinho.find((i) => i.id_variante === idVariante);
+    if (!item) return;
+
+    // Diminui quantidade respeitando limite mínimo de 1
+    if (target.classList.contains("btn-qty-minus")) {
       if (item.quantidade > 1) {
         item.quantidade--;
         salvarCarrinhoNoStorage();
         renderizarCarrinho();
       }
-    });
+    } else if (target.classList.contains("btn-qty-plus")) {
+      // Aumenta quantidade do produto
 
-    clone.querySelector(".btn-qty-plus").addEventListener("click", () => {
       item.quantidade++;
       salvarCarrinhoNoStorage();
       renderizarCarrinho();
-    });
-
-    clone.querySelector(".btn-remove-item").addEventListener("click", () => {
-      itensCarrinho = itensCarrinho.filter(
-        (i) => i.id_variante !== item.id_variante,
-      );
+    } else if (target.closest(".btn-remove-item")) {
+      // Remove produto completamente do carrinho
+      itensCarrinho = itensCarrinho.filter((i) => i.id_variante !== idVariante);
       salvarCarrinhoNoStorage();
       showSnackbar(`${item.nome} removido do carrinho.`, "info");
       renderizarCarrinho();
-    });
-
-    listContainer.appendChild(clone);
+    }
   });
-
-  atualizarResumoFinanceiro();
 }
 
+// Calcula o valor total somando todos os produtos e quantidades
 function calcularTotal() {
   return itensCarrinho.reduce(
-    (acumulador, item) => acumulador + item.preco * item.quantidade,
+    (acc, item) => acc + item.preco * item.quantidade,
     0,
   );
 }
 
+// Atualiza os valores exibidos no resumo da compra
+// Também controla se o botão de checkout deve estar disponível
 function atualizarResumoFinanceiro() {
   const totalFinal = calcularTotal();
   const txtSubtotal = document.getElementById("summary-subtotal");
   const txtTotal = document.getElementById("summary-total");
   const btnCheckout = document.getElementById("btn-checkout");
 
-  if (txtSubtotal)
-    txtSubtotal.textContent = totalFinal.toLocaleString("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    });
-  if (txtTotal)
-    txtTotal.textContent = totalFinal.toLocaleString("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    });
+  const valorFormatado = totalFinal.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
 
-  if (btnCheckout) {
-    btnCheckout.disabled = itensCarrinho.length === 0;
-  }
+  if (txtSubtotal) txtSubtotal.textContent = valorFormatado;
+  if (txtTotal) txtTotal.textContent = valorFormatado;
+
+  // Bloqueia checkout quando não existem produtos
+  if (btnCheckout) btnCheckout.disabled = itensCarrinho.length === 0;
 }
 
-// 🌟 NOVA FUNÇÃO: Processa a transação relacional completa no banco de dados
+// Processa a finalização da compra diretamente no Firebase
+// Utiliza uma transação para garantir que estoque, venda e itens sejam atualizados juntos
+// evitando inconsistências caso ocorra algum erro no meio do processo
 async function processarCheckoutBancoDados() {
   const btnCheckout = document.getElementById("btn-checkout");
 
-  // 1. Recupera o usuário logado da sessão
-  const loggedUserRaw = localStorage.getItem("loggedUser");
-  if (!loggedUserRaw) {
+  const usuarioLS = localStorage.getItem("loggedUser");
+  const usuario = usuarioLS ? JSON.parse(usuarioLS) : null;
+
+
+  if (!usuario) {
     showSnackbar(
       "Você precisa estar logado para finalizar uma compra.",
       "invalid",
     );
+
+    // Força a limpeza de possíveis dados locais corrompidos ou manipulados
+    localStorage.removeItem("loggedUser");
+
     setTimeout(() => (window.location.href = "../login/login.html"), 2000);
     return;
   }
-  const usuarioLogado = JSON.parse(loggedUserRaw);
 
+  // Bloqueia múltiplos cliques enquanto a compra está sendo processada
   if (btnCheckout) btnCheckout.disabled = true;
   showSnackbar("Processando seu pedido, aguarde...", "info");
 
   try {
-    // Usamos runTransaction para garantir atomicidade (ou grava tudo com sucesso ou reverte tudo em caso de erro de estoque)
+    // Calcula o valor final da compra antes de salvar no banco
+    const totalPedido = calcularTotal();
+
+    // Cria um timestamp único para registrar criação e atualização
+    const timestampAtual = new Date().toISOString();
+
+    // Executa todas as alterações como uma única operação atômica
+    // Se qualquer etapa falhar, nenhuma alteração é aplicada no banco
     await runTransaction(database, async (transaction) => {
-      // --- PASSO 2: Obter IDs incrementais para Vendas e Itens através de contadores locais ---
+      // Referências dos contadores responsáveis por gerar IDs sequenciais
       const vendasCounterRef = doc(database, "contadores", "vendas");
       const produtoVendasCounterRef = doc(
         database,
@@ -171,62 +244,83 @@ async function processarCheckoutBancoDados() {
         "produto_vendas",
       );
 
-      const vendasCounterSnap = await transaction.get(vendasCounterRef);
-      const prodVendasCounterSnap = await transaction.get(
-        produtoVendasCounterRef,
-      );
+      // Busca os valores atuais dos contadores
+      // Eles serão usados para gerar os próximos IDs
+      const [vendasCounterSnap, prodVendasCounterSnap] = await Promise.all([
+        transaction.get(vendasCounterRef),
+        transaction.get(produtoVendasCounterRef),
+      ]);
 
-      let proximoVendaId = vendasCounterSnap.exists()
+      // Define o próximo ID da venda
+      // Caso seja a primeira venda, começa pelo ID 1
+      const proximoVendaId = vendasCounterSnap.exists()
         ? vendasCounterSnap.data().atual + 1
         : 1;
+
+      // Recupera o último ID de produto_venda criado
       let proximoProdVendaId = prodVendasCounterSnap.exists()
         ? prodVendasCounterSnap.data().atual
         : 0;
 
-      // --- PASSO 3: Validar Estoque de Cada Item antes de confirmar a compra ---
+      // Cria todas as referências das variantes compradas
+      // Isso permite buscar os estoques em paralelo
+      const referenciasVariantes = itensCarrinho.map((item) =>
+        doc(database, "produto_variantes", String(item.id_variante)),
+      );
+
+      // Busca todos os produtos do carrinho ao mesmo tempo
+      // Melhora performance comparado a fazer uma busca por item
+      const snapshotsVariantes = await Promise.all(
+        referenciasVariantes.map((ref) => transaction.get(ref)),
+      );
+
+      // Guarda as atualizações de estoque que serão aplicadas depois
       const variantesAtualizadas = [];
 
-      for (const item of itensCarrinho) {
-        const varianteRef = doc(
-          database,
-          "produto_variantes",
-          String(item.id_variante),
-        );
-        const varianteSnap = await transaction.get(varianteRef);
+      // Valida todos os produtos antes de gravar a compra
+      // Evita criar uma venda sem estoque suficiente
+      itensCarrinho.forEach((item, index) => {
+        const varianteSnap = snapshotsVariantes[index];
 
+        // Caso o produto tenha sido removido do banco
         if (!varianteSnap.exists()) {
           throw new Error(
             `A variante do produto ${item.nome} não foi encontrada no banco.`,
           );
         }
 
+        // Recupera o estoque atual da variante
         const estoqueAtual = Number(varianteSnap.data().estoque);
+
+        // Bloqueia compras acima do estoque disponível
         if (estoqueAtual < item.quantidade) {
           throw new Error(
             `Estoque insuficiente para ${item.nome} (${item.cor} - ${item.tamanho}). Disponível: ${estoqueAtual}`,
           );
         }
 
-        // Guarda os dados calculados para atualizar o estoque caso a transação passe no teste
+        // Salva o novo estoque que será aplicado após confirmar a compra
         variantesAtualizadas.push({
-          ref: varianteRef,
+          ref: referenciasVariantes[index],
           novoEstoque: estoqueAtual - item.quantidade,
         });
-      }
-
-      // --- PASSO 4: Executar INSERT na tabela de Vendas ---
-      const novaVendaRef = doc(database, "vendas", String(proximoVendaId));
-      transaction.set(novaVendaRef, {
-        usuario_id: String(usuarioLogado.uid),
-        valor_total: calcularTotal(),
-        status: "pendente", // Simula a aprovação imediata no teste do e-commerce
-        endereco_entrega_id: "1", // Associa a uma FK padrão ou id do endereço salvo
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
       });
 
-      // --- PASSO 5: Executar INSERTs na tabela produto_vendas e dar UPDATE no estoque ---
-      for (const item of itensCarrinho) {
+      // Cria o registro principal da venda
+      // Representa o pedido realizado pelo usuário
+      const novaVendaRef = doc(database, "vendas", String(proximoVendaId));
+      transaction.set(novaVendaRef, {
+        usuario_id: String(usuario.uid),
+        valor_total: totalPedido,
+        status: "pendente",
+        endereco_entrega_id: "1",
+        created_at: timestampAtual,
+        updated_at: timestampAtual,
+      });
+
+      // Cria cada item relacionado à venda
+      // Cada produto comprado vira um registro separado
+      itensCarrinho.forEach((item) => {
         proximoProdVendaId++;
         const itemVendaRef = doc(
           database,
@@ -239,50 +333,52 @@ async function processarCheckoutBancoDados() {
           venda_id: String(proximoVendaId),
           quantidade: item.quantidade,
           valor: item.preco * item.quantidade,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        });
-      }
-
-      // Atualiza os estoques reduzidos
-      variantesAtualizadas.forEach((v) => {
-        transaction.update(v.ref, {
-          estoque: v.novoEstoque,
-          updated_at: new Date().toISOString(),
+          created_at: timestampAtual,
+          updated_at: timestampAtual,
         });
       });
 
-      // Atualiza os contadores globais ordinais
+      // Atualiza estoques decrementados
+      variantesAtualizadas.forEach((v) => {
+        transaction.update(v.ref, {
+          estoque: v.novoEstoque,
+          updated_at: timestampAtual,
+        });
+      });
+
+      // Commita estados das chaves primárias globais do ecossistema
       transaction.set(vendasCounterRef, { atual: proximoVendaId });
       transaction.set(produtoVendasCounterRef, { atual: proximoProdVendaId });
     });
 
-    // --- SUCESSO COMPLETO ---
+    // Caso a transação finalize sem erros,
+    // limpa o carrinho e informa sucesso ao usuário
     showSnackbar(
       "Pedido finalizado com sucesso! Estoque atualizado.",
       "success",
     );
-
-    // Limpa o estado local
     itensCarrinho = [];
     localStorage.removeItem(CART_STORAGE_KEY);
     renderizarCarrinho();
   } catch (error) {
+    // Captura erros de estoque, Firebase ou falhas de transação
     console.error("❌ Erro na transação de checkout:", error);
     showSnackbar(
       error.message || "Erro desconhecido ao processar pedido.",
       "invalid",
     );
+
+    // Libera novamente o botão caso a compra falhe
     if (btnCheckout) btnCheckout.disabled = false;
   }
 }
 
-// Inicialização
+// Inicialização única de listeners
 document.addEventListener("DOMContentLoaded", () => {
   itensCarrinho = getCartFromStorage();
   renderizarCarrinho();
+  configurarOuvinteCarrinho();
 
-  // Atrela o evento de clique do checkout à nossa nova função relacional robusta
   document
     .getElementById("btn-checkout")
     ?.addEventListener("click", processarCheckoutBancoDados);
