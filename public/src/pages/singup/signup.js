@@ -1,8 +1,13 @@
-import { auth } from "../../utils/firebase-config.js";
+import { auth, database } from "../../utils/firebase-config.js"; // Certifique-se de que o 'database' (Firestore) é exportado aqui
 import {
   createUserWithEmailAndPassword,
   updateProfile,
-} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+// 🌟 NOVO IMPORT: Métodos do Firestore para salvar na tabela plana
+import {
+  doc,
+  setDoc,
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 import { showSnackbar } from "../../shared/components/snackbar/snackbar.js";
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -23,32 +28,35 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     try {
+      // 1. Cria a conta do usuário no Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
         password,
       );
+      const user = userCredential.user;
 
+      // 2. Adiciona o Nome no Perfil nativo do Auth
       if (name) {
-        await updateProfile(userCredential.user, {
+        await updateProfile(user, {
           displayName: name,
         });
       }
 
-      // Salva telefone e perfil básico no localStorage para compatibilidade
-      try {
-        const user = userCredential.user;
-        const profile = { uid: user.uid, name, email, phone };
-
-        const profiles = JSON.parse(
-          localStorage.getItem("userProfiles") || "{}",
-        );
-        profiles[profile.uid] = profile;
-        localStorage.setItem("userProfiles", JSON.stringify(profiles));
-      } catch (e) {
-        // falha em gravar no localStorage não impede o fluxo
-        console.warn("Não foi possível salvar o perfil localmente:", e);
-      }
+      // 🌟 3. SALVA NO FIRESTORE (Simulando o INSERT INTO usuarios)
+      // Usamos o 'user.uid' como ID do documento para amarrar os dois mundos perfeitamente
+      await setDoc(doc(database, "usuarios", user.uid), {
+        nome: name,
+        email: email,
+        telefone: phone,
+        cpf: null, // Pode ser atualizado no painel da conta depois
+        perfil: "cliente", // Valor padrão do seu Enum SQL
+        genero: "N/I",
+        dt_nascimento: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        deleted_at: null,
+      });
 
       showSnackbar("Cadastro realizado com sucesso!", "success");
 
@@ -56,6 +64,7 @@ document.addEventListener("DOMContentLoaded", () => {
         window.location.href = "../login/login.html";
       }, 2000);
     } catch (error) {
+      console.error(error);
       showSnackbar(parseFirebaseAuthError(error), "invalid");
     }
   });

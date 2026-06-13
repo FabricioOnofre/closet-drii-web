@@ -60,15 +60,12 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-.page-header p::after {
-  content: "";
-  display: block;
-  width: 64px;
-  height: 4px;
-  border-radius: 4px;
-  margin: 14px auto 0;
-  background: linear-gradient(90deg, var(--primary), var(--secondary));
-  opacity: 0.95;
+.page-header p {
+  color: var(--muted);
+  font-size: 1.15rem;
+  max-width: 65ch;
+  margin: auto;
+  line-height: 1.6;
 }
 
 /* LAYOUT PRINCIPAL */

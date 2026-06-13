@@ -1,4 +1,6 @@
 import { showSnackbar } from "../snackbar/snackbar.js";
+// 🌟 NOVO IMPORT: Conecta o modal com a lógica real de persistência do carrinho
+import { adicionarAoCarrinho } from "../../../pages/cart/cart.js"; // Certifique-se de que o caminho das pastas bate no seu projeto
 
 let currentProduct = null;
 let selectedColor = null;
@@ -10,13 +12,11 @@ async function initModal() {
   if (document.getElementById("product-modal")) return;
 
   try {
-    // Busca o arquivo HTML relativo ao componente compartilhado
     const response = await fetch(
       "../../shared/components/product-modal/product-modal.html",
     );
     const html = await response.text();
 
-    // Insere o modal no fim do body da página corrente
     document.body.insertAdjacentHTML("beforeend", html);
     setupModalEvents();
   } catch (error) {
@@ -64,7 +64,6 @@ function closeModal() {
   document.getElementById("product-modal").classList.remove("active");
 }
 
-// --- ESSA É A FUNÇÃO QUE SERÁ EXPORTADA E CHAMADA PELAS SUAS PÁGINAS (Home, Produtos, etc.) ---
 export function openProductModal(produto) {
     currentProduct = produto;
     selectedQty = 1;
@@ -76,38 +75,40 @@ export function openProductModal(produto) {
     document.getElementById('modal-product-name').textContent = produto.nome;
     document.getElementById('modal-product-category').textContent = produto.categoria || 'Moda Feminina';
     
-    // Trata o preço caso ele venha como string formatada ou número puro
-    const precoNum = typeof produto.preco === 'number' ? produto.preco : parseFloat(produto.preco.replace(/[^\d.,]/g, '').replace(',', '.'));
-    document.getElementById('modal-product-price').textContent = precoNum.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-    
-    document.getElementById('modal-product-description').textContent = produto.descricao || 'Nenhuma descrição disponível.';
+    const precoNum =
+      typeof produto.preco === "number"
+        ? produto.preco
+        : parseFloat(produto.preco.replace(/[^\d.,]/g, "").replace(",", "."));
+    document.getElementById("modal-product-price").textContent =
+      precoNum.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-    // 🌟 CORREÇÃO AQUI: Garante compatibilidade com 'variantes' ou 'produto_variantes'
+    document.getElementById("modal-product-description").textContent =
+      produto.descricao || "Nenhuma descrição disponível.";
+
     const listaVariantes = produto.variantes || produto.produto_variantes || [];
 
     if (listaVariantes.length === 0) {
-        // Se o produto não tiver variantes no banco (por ser um dado de teste antigo)
-        console.warn(`O produto "${produto.nome}" não possui nenhuma variante cadastrada.`);
-        document.getElementById('modal-color-options').innerHTML = '<p class="stock-status">Variações indisponíveis</p>';
-        document.getElementById('modal-size-options').innerHTML = '';
-        document.getElementById('modal-stock-status').textContent = 'Fora de estoque';
-        document.getElementById('modal-add-to-cart-btn').disabled = true;
-        
-        document.getElementById('product-modal').classList.add('active');
-        return;
+      console.warn(
+        `O produto "${produto.nome}" não possui nenhuma variante cadastrada.`,
+      );
+      document.getElementById("modal-color-options").innerHTML =
+        '<p class="stock-status">Variações indisponíveis</p>';
+      document.getElementById("modal-size-options").innerHTML = "";
+      document.getElementById("modal-stock-status").textContent =
+        "Fora de estoque";
+      document.getElementById("modal-add-to-cart-btn").disabled = true;
+
+      document.getElementById("product-modal").classList.add("active");
+      return;
     }
 
-    // Atualiza a referência global para usar a lista tratada
     currentProduct.variantes = listaVariantes;
 
-    // Processa as cores utilizando a lista segura que acabamos de validar
     const coresUnicas = [...new Set(listaVariantes.map(v => v.cor))];
     buildColorSelectors(coresUnicas);
 
-    // Pré-seleciona a primeira cor do produto
     selectColor(coresUnicas[0]);
 
-    // Exibe o modal aplicando a classe CSS
     document.getElementById('product-modal').classList.add('active');
 }
 
@@ -134,9 +135,12 @@ function selectColor(cor) {
 
   const variantesDaCor = currentProduct.variantes.filter((v) => v.cor === cor);
 
-  if (variantesDaCor.length > 0) {
+  if (variantesDaCor.length > 0 && variantesDaCor[0].imagem_url) {
     document.getElementById("modal-product-img").src =
       variantesDaCor[0].imagem_url;
+  } else {
+    document.getElementById("modal-product-img").src =
+      "../../assets/img/logo.jpg";
   }
 
   buildSizeSelectors(variantesDaCor);
@@ -145,7 +149,8 @@ function selectColor(cor) {
   if (primeiroComEstoque) {
     selectSize(primeiroComEstoque.tamanho);
   } else {
-    selectSize(null);
+    // Se o primeiro não tiver estoque, pega a primeira variação de tamanho mesmo assim
+    selectSize(variantesDaCor[0]?.tamanho || null);
   }
 }
 
@@ -153,18 +158,31 @@ function buildSizeSelectors(variantes) {
   const container = document.getElementById("modal-size-options");
   container.innerHTML = "";
 
-  const tamanhosPadrao = ["P", "M", "G", "GG"];
+  // Suporta tamanhos numéricos do jeans (36, 38) ou tradicionais (P, M, G) mapeados no banco
+  const tamanhosDisponiveis = variantes.map((v) => v.tamanho);
 
-  tamanhosPadrao.forEach((tam) => {
+  // Lista base para renderizar os botões na ordem correta da tela
+  const padraoTamanhos = ["36", "38", "40", "42", "U", "P", "M", "G", "GG"];
+
+  // Ordena os botões conforme a lista padrão para não misturar posições na tela
+  const tamanhosParaRenderizar = padraoTamanhos.filter((t) =>
+    tamanhosDisponiveis.includes(t),
+  );
+
+  // Fallback caso venha algum tamanho fora do padrão definido
+  tamanhosDisponiveis.forEach((t) => {
+    if (!tamanhosParaRenderizar.includes(t)) tamanhosParaRenderizar.push(t);
+  });
+
+  tamanhosParaRenderizar.forEach((tam) => {
     const varianteExistente = variantes.find((v) => v.tamanho === tam);
     const btn = document.createElement("button");
     btn.className = "size-btn";
     btn.textContent = tam;
 
-    if (!varianteExistente) {
+    if (!varianteExistente || varianteExistente.estoque === 0) {
       btn.classList.add("disabled");
-    } else if (varianteExistente.estoque === 0) {
-      btn.classList.add("disabled");
+      // Se não tem estoque, o botão só ganha estilo desativado e não aceita click
     } else {
       btn.addEventListener("click", () => selectSize(tam));
     }
@@ -211,28 +229,38 @@ function updateStockStatus() {
   }
 }
 
+// 🌟 ATUALIZADO: Processa os dados dinâmicos selecionados e joga no localStorage
 function handleAddToCart() {
   if (!selectedColor || !selectedSize) {
     showSnackbar("Por favor, selecione cor e tamanho.", "error");
     return;
   }
 
+  // Localiza a variante selecionada para resgatar o ID real da linha ("produto_variantes")
+  const varianteSelecionada = currentProduct.variantes.find(
+    (v) => v.cor === selectedColor && v.tamanho === selectedSize,
+  );
+
+  if (!varianteSelecionada) {
+    showSnackbar("Esta combinação não está disponível.", "error");
+    return;
+  }
+
+  // Monta o payload idêntico ao contrato aceito pelo renderizador do carrinho
   const itemCarrinho = {
+    id_variante: varianteSelecionada.id, // O ID string do doc do Firestore mapeado na busca
     produto_id: currentProduct.id,
     nome: currentProduct.nome,
     preco: currentProduct.preco,
     cor: selectedColor,
     tamanho: selectedSize,
     quantidade: selectedQty,
+    imagem_url: varianteSelecionada.imagem_url || "../../assets/img/logo.jpg",
   };
 
-  // Aqui integra com o array global de controle de carrinho do seu projeto
-  console.log("Adicionado globalmente:", itemCarrinho);
+  // Envia diretamente para o gerenciador do carrinho (localStorage)
+  adicionarAoCarrinho(itemCarrinho);
 
-  showSnackbar(
-    `Sucesso! ${selectedQty}x ${currentProduct.nome} adicionado ao carrinho.`,
-    "success",
-  );
   closeModal();
 }
 
