@@ -61,7 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
       showSnackbar("Cadastro realizado com sucesso!", "success");
 
       setTimeout(() => {
-        window.location.href = "../login/login.html";
+        window.location.href = "../home/home.html";
       }, 2000);
     } catch (error) {
       console.error(error);

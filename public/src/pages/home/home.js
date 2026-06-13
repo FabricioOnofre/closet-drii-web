@@ -1,112 +1,59 @@
-import { showSnackbar } from "../../shared/components/snackbar/snackbar.js";
-import { openProductModal } from "../../shared/components/product-modal/product-modal.js";
+import { database } from "../../utils/firebase-config.js";
+import {
+  buscarProdutosEstruturados,
+  renderizarComponenteCards,
+} from "../../utils/product-helpers.js";
+import { query } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
-// Banco de dados mockado e expandido com variantes reais
-const produtos = [
-  {
-    id: 1,
-    nome: "Vestido Floral",
-    descricao:
-      "Vestido leve com estampa floral, perfeito para composições de verão.",
-    preco: 150.0,
-    categoria: "Vestidos",
-    variantes: [
-      {
-        cor: "Azul",
-        tamanho: "M",
-        estoque: 5,
-        imagem_url: "/src/assets/img/logo.jpg",
-      },
-      {
-        cor: "Azul",
-        tamanho: "G",
-        estoque: 2,
-        imagem_url: "/src/assets/img/logo.jpg",
-      },
-    ],
-  },
-  {
-    id: 2,
-    nome: "Calça Alfaiataria",
-    descricao: "Calça corte reto em alfaiataria elegante e cintura alta.",
-    preco: 180.0,
-    categoria: "Calças",
-    variantes: [
-      {
-        cor: "Preto",
-        tamanho: "P",
-        estoque: 8,
-        imagem_url: "/src/assets/img/logo.jpg",
-      },
-      {
-        cor: "Preto",
-        tamanho: "M",
-        estoque: 10,
-        imagem_url: "/src/assets/img/logo.jpg",
-      },
-    ],
-  },
-  {
-    id: 3,
-    nome: "Blusa Básica",
-    descricao: "Blusa t-shirt básica confeccionada em algodão macio.",
-    preco: 60.0,
-    categoria: "Blusas",
-    variantes: [
-      {
-        cor: "Branco",
-        tamanho: "M",
-        estoque: 15,
-        imagem_url: "/src/assets/img/logo.jpg",
-      },
-    ],
-  },
-];
+document.addEventListener("DOMContentLoaded", async () => {
+  await inicializarPaginaHome();
+});
 
-function renderizarProdutos(lista, containerId) {
-  const container = document.getElementById(containerId);
-  const template = document.getElementById("template-card");
+async function inicializarPaginaHome() {
+  try {
+    // 1. Consome a função utilitária global para trazer os dados totalmente mapeados (O(1))
+    const todosProdutos = await buscarProdutosEstruturados();
 
-  if (!container || !template) return;
-  container.innerHTML = ""; // Limpa antes de injetar
+    if (todosProdutos.length === 0) return;
 
-  lista.forEach((produto) => {
-    const clone = template.content.cloneNode(true);
+    // 2. LÓGICA DE NEGÓCIO EXCLUSIVA DA HOME: TOP 5 e BOTTOM 5
+    // Criamos clones isolados na memória usando o operador spread antes de ordenar
+    const top5Destaques = [...todosProdutos]
+      .sort((a, b) => b.preco - a.preco)
+      .slice(0, 5);
 
-    // Preenchimento com formatação de moeda correta
-    clone.querySelector(".produto-nome").textContent = produto.nome;
-    clone.querySelector(".produto-preco").textContent =
-      produto.preco.toLocaleString("pt-BR", {
-        style: "currency",
-        currency: "BRL",
-      });
+    const bottom5Ofertas = [...todosProdutos]
+      .sort((a, b) => a.preco - b.preco)
+      .slice(0, 5);
 
-    const imagemPadrao =
-      produto.variantes && produto.variantes[0]
-        ? produto.variantes[0].imagem_url
-        : "/src/assets/img/logo.jpg";
-    clone.querySelector(".produto-img").src = imagemPadrao;
-    clone.querySelector(".produto-img").alt = produto.nome;
-
-    // Gatilho 1: Clicar no corpo do card abre o Modal Detalhado
-    clone.querySelector(".open-modal-trigger").addEventListener("click", () => {
-      openProductModal(produto);
-    });
-
-    // Gatilho 2: Clicar direto no botão adiciona a variante padrão na sacola
-    clone.querySelector(".add-btn").addEventListener("click", (e) => {
-      e.stopPropagation(); // Evita disparar o clique do modal por acidente
-      showSnackbar(
-        `Adicionado: ${produto.nome} (${produto.variantes[0].cor}/${produto.variantes[0].tamanho})`,
-        `success`,
-      );
-    });
-
-    container.appendChild(clone);
-  });
+    // 4. Invoca o renderizador genérico do utils passando as listas e os IDs dos containers
+    renderizarComponenteCards(top5Destaques, "product-best-seller");
+    renderizarComponenteCards(bottom5Ofertas, "product-offer");
+  } catch (error) {
+    console.error("❌ Erro ao inicializar inteligência da Home:", error);
+  }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  renderizarProdutos(produtos, "product-best-seller");
-  renderizarProdutos(produtos, "product-offer");
-});
+// Mantém a injeção dos chips de busca rápida (Lógica específica da tela Home)
+function renderizarChipsCategorias(categorias) {
+  const container = document.querySelector(".quick-search");
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  categorias.forEach((categoria, index) => {
+    const btn = document.createElement("button");
+    btn.className = `chip ${index === 0 ? "active" : ""}`;
+    btn.textContent = categoria;
+
+    btn.addEventListener("click", () => {
+      document
+        .querySelectorAll(".quick-search .chip")
+        .forEach((c) => c.classList.remove("active"));
+      btn.classList.add("active");
+      window.location.href = `../produtos/produtos.html?categoria=${encodeURIComponent(categoria.toLowerCase())}`;
+    });
+
+    container.appendChild(btn);
+  });
+}

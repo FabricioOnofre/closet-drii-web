@@ -27,7 +27,6 @@ body {
 
 .products-wrapper {
   padding: calc(110px) 32px 40px;
-  max-width: 1450px;
   margin: auto;
 }
 
@@ -129,6 +128,63 @@ body {
   height: 18px;
   cursor: pointer;
 }
+
+/* SEARCH */
+.search-section {
+  margin-bottom: 20px;
+}
+
+.search-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.search-header h2 {
+  font-size: 2rem;
+  color: var(--primary);
+  margin-bottom: 10px;
+}
+
+.search-header p {
+  color: var(--muted);
+}
+
+.search-box {
+  display: flex;
+  max-width: 760px;
+  margin: auto;
+  background: #faf4f4;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.search-box input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 18px 22px;
+  font-size: 1rem;
+  outline: none;
+}
+
+.search-box button {
+  width: 70px;
+  border: none;
+  background: var(--primary);
+  color: white;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.quick-search {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 24px;
+}
+
 
 /* RANGE DE PREÇO */
 .price-range input[type="range"] {
@@ -344,5 +400,89 @@ body {
   
   .filters-sidebar {
     flex-direction: column;
+  }
+}
+
+/* Área de Alinhamento das Badges */
+.applied-filters-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: white;
+  padding: 14px 24px;
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.applied-filters-wrapper .title-label {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badges-list {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Badges Individuais Estilo Closet Drii */
+.filter-badge-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background-color: #fff7f7;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--primary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.filter-badge-item i {
+  cursor: pointer;
+  color: var(--secondary);
+  font-size: 0.95rem;
+  transition: color 0.2s ease;
+}
+
+.filter-badge-item i:hover {
+  color: var(--primary-dark);
+}
+
+/* Link para limpar todo o bloco */
+.clear-all-link {
+  background: transparent;
+  border: none;
+  color: var(--secondary);
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-decoration: underline;
+  transition: color 0.2s;
+  margin-left: auto; /* Alinha o link no canto direito da barra */
+}
+
+.clear-all-link:hover {
+  color: var(--primary);
+}
+
+/* Responsividade da barra de busca por texto */
+.search-section .search-box {
+  box-shadow: var(--shadow);
+}
+
+@media (max-width: 768px) {
+  .clear-all-link {
+    margin-left: 0;
+    width: 100%;
+    text-align: left;
+    margin-top: 6px;
   }
 }
