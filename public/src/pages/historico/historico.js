@@ -126,7 +126,7 @@ async function carregarHistoricoPedidos(userUid) {
         valorTotalItem: data.valor,
         cor: dadosVariante.cor || "Padrão",
         tamanho: dadosVariante.tamanho || "U",
-        imagem_url: dadosVariante.imagem_url || "../../assets/img/logo.jpg",
+        imagem_url: dadosVariante.imagem_url || "../../assets/img/logo.png",
 
         nome: dadosVariante.cor
           ? `Peça Elegance ${dadosVariante.cor}`

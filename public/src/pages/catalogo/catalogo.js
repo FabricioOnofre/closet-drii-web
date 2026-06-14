@@ -1,15 +1,21 @@
 import { protegerRota } from "../../utils/auth-helpers.js";
-import { database } from "../../utils/firebase-config.js";
+import { database, storage } from "../../utils/firebase-config.js";
 import { buscarProdutosEstruturados } from "../../utils/product-helpers.js";
 import { showSnackbar } from "../../shared/components/snackbar/snackbar.js";
 import {
   doc,
+  getDoc,
   setDoc,
   deleteDoc,
   collection,
   getDocs,
   runTransaction,
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+import {
+  ref,
+  uploadBytes,
+  getDownloadURL,
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
 
 // Estados voláteis locais para controle de concorrência, filtros e cache de UI
 let produtosCache = [];
@@ -17,6 +23,8 @@ let categoriasCache = {};
 let buscaDebounceTimer;
 let idProdutoParaExcluir = null;
 let variantesFormState = [];
+// Mapa de arquivos selecionados por variante: { [rowId]: File }
+const arquivosPendentes = {};
 
 document.addEventListener("DOMContentLoaded", () => {
   // Rota Protegida: Valida a sessão em tempo real com o Firebase Auth
@@ -157,7 +165,11 @@ function configurarOuvintesEventos() {
     modal.style.display = "flex";
   });
 
-  const fecharModal = () => (modal.style.display = "none");
+  const fecharModal = () => {
+    modal.style.display = "none";
+    // Limpa arquivos pendentes ao fechar
+    Object.keys(arquivosPendentes).forEach((k) => delete arquivosPendentes[k]);
+  };
   document
     .getElementById("btn-close-modal")
     ?.addEventListener("click", fecharModal);
@@ -257,7 +269,6 @@ function configurarOuvintesEventos() {
   // Submissão unificada do formulário
   form?.addEventListener("submit", async (e) => {
     e.preventDefault();
-    fecharModal();
 
     const idInputVal = document.getElementById("form-product-id").value;
     const dadosForm = {
@@ -273,6 +284,8 @@ function configurarOuvintesEventos() {
     } else {
       await executarInsercaoCompleta(dadosForm);
     }
+
+    fecharModal();
   });
 }
 
@@ -292,6 +305,8 @@ function renderizarLinhasVariantesModal() {
     const row = document.createElement("div");
     row.className = "variant-form-row";
 
+    const previewSrc = variante.imagem_url || "";
+
     row.innerHTML = `
       <select data-row-id="${variante.id}" data-field="tamanho" required>
         <option value="P" ${variante.tamanho === "P" ? "selected" : ""}>P</option>
@@ -302,10 +317,32 @@ function renderizarLinhasVariantesModal() {
       </select>
       <input type="text" data-row-id="${variante.id}" data-field="cor" value="${variante.cor}" required placeholder="Ex: Rosa Fúcsia" />
       <input type="number" data-row-id="${variante.id}" data-field="estoque" value="${variante.estoque}" min="0" required placeholder="10" />
+      <div class="variant-image-upload">
+        ${previewSrc ? `<img class="variant-img-preview" src="${previewSrc}" alt="preview" />` : `<span class="variant-img-placeholder"><i class="fas fa-image"></i></span>`}
+        <label class="btn-upload-img" title="Selecionar imagem">
+          <i class="fas fa-upload"></i>
+          <input type="file" accept="image/*" data-row-id="${variante.id}" style="display:none" />
+        </label>
+      </div>
       <button type="button" class="btn-remove-variant-row" data-row-id="${variante.id}" title="Remover Variante">
         <i class="fas fa-minus-circle"></i>
       </button>
     `;
+
+    // Listener para capturar o arquivo e mostrar preview imediato
+    const fileInput = row.querySelector('input[type="file"]');
+    fileInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      arquivosPendentes[variante.id] = file;
+
+      const previewEl = row.querySelector(".variant-img-preview, .variant-img-placeholder");
+      const img = document.createElement("img");
+      img.className = "variant-img-preview";
+      img.src = URL.createObjectURL(file);
+      img.alt = "preview";
+      if (previewEl) previewEl.replaceWith(img);
+    });
 
     fragment.appendChild(row);
   });
@@ -314,12 +351,35 @@ function renderizarLinhasVariantesModal() {
   container.appendChild(fragment);
 }
 
+// Faz upload da imagem para o Storage e retorna a URL pública
+async function uploadImagemVariante(rowId, produtoId) {
+  const file = arquivosPendentes[rowId];
+  if (!file) return null;
+
+  const extensao = file.name.split(".").pop();
+  const path = `produtos/${produtoId}/${rowId}.${extensao}`;
+  const storageRef = ref(storage, path);
+  await uploadBytes(storageRef, file);
+  const url = await getDownloadURL(storageRef);
+  return url;
+}
+
 // Gravação atômica unificada: ID incremental para novos produtos e suas respectivas variantes
 async function executarInsercaoCompleta(dadosProduto) {
   showSnackbar("Processando inserção relacional...", "info");
   try {
     if (variantesFormState.length === 0) {
       throw new Error("Falha: É necessário adicionar pelo menos uma variante.");
+    }
+
+    // Busca o próximo ID do produto para usar no path do Storage
+    const prodCounterSnap = await getDoc(doc(database, "contadores", "produtos"));
+    const proximoProdIdPreview = prodCounterSnap.exists() ? prodCounterSnap.data().atual + 1 : 1;
+
+    // Faz upload das imagens antes da transação
+    for (const variante of variantesFormState) {
+      const url = await uploadImagemVariante(variante.id, proximoProdIdPreview);
+      if (url) variante.imagem_url = url;
     }
 
     await runTransaction(database, async (transaction) => {
@@ -347,20 +407,14 @@ async function executarInsercaoCompleta(dadosProduto) {
         );
       }
 
-      // Inserção do produto pai
       transaction.set(novoProdRef, {
         ...dadosProduto,
         created_at: new Date().toISOString(),
       });
 
-      // Inserção em lote das variantes filhas
       variantesFormState.forEach((variante) => {
         proximoVarId++;
-        const novaVarRef = doc(
-          database,
-          "produto_variantes",
-          String(proximoVarId),
-        );
+        const novaVarRef = doc(database, "produto_variantes", String(proximoVarId));
         transaction.set(novaVarRef, {
           produto_id: proximoProdId,
           cor: variante.cor,
@@ -391,10 +445,13 @@ async function executarUpdateCompleto(produtoId, dadosProduto) {
   try {
     const numProdId = Number(produtoId);
 
-    // Atualiza o documento pai (Produto)
-    await setDoc(doc(database, "produtos", String(produtoId)), dadosProduto, {
-      merge: true,
-    });
+    // Faz upload de imagens novas antes de salvar
+    for (const variante of variantesFormState) {
+      const url = await uploadImagemVariante(variante.id, produtoId);
+      if (url) variante.imagem_url = url;
+    }
+
+    await setDoc(doc(database, "produtos", String(produtoId)), dadosProduto, { merge: true });
 
     // Busca as variantes atuais associadas a esse produto para checar deleções
     const variantesSnapshot = await getDocs(
@@ -464,6 +521,7 @@ async function executarUpdateCompleto(produtoId, dadosProduto) {
             cor: variante.cor,
             tamanho: variante.tamanho,
             estoque: Number(variante.estoque),
+            imagem_url: variante.imagem_url || "",
           },
           { merge: true },
         );
