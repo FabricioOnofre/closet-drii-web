@@ -1,6 +1,6 @@
+import { protegerRota } from "../../utils/auth-helpers.js";
 import { database } from "../../utils/firebase-config.js";
 import { showSnackbar } from "../../shared/components/snackbar/snackbar.js";
-
 import {
   collection,
   getDocs,
@@ -8,32 +8,29 @@ import {
   updateDoc,
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
-// Estados Globais da Memória do Painel
+// Estados Globais em memória para gerenciamento e filtragem fluida de pedidos
 let vendasGerais = [];
 let usuariosMap = {};
 let itensPorVendaMap = {};
 let filtroStatusAtual = "todos";
 
-document.addEventListener("DOMContentLoaded", async () => {
-  // 1. Guarda de Segurança de Perfil
-  const loggedUserRaw = localStorage.getItem("loggedUser");
-  if (!loggedUserRaw) {
-    window.location.href = "../login/login.html";
-    return;
-  }
+document.addEventListener("DOMContentLoaded", () => {
+  // Rota Protegida: Valida a sessão em tempo real com o Firebase Auth
+  protegerRota(async (user) => {
+    // Validação de Autorização: Garante que apenas usuários com nível administrativo acessem o painel
+    const loggedUser = JSON.parse(localStorage.getItem("loggedUser"));
+    if (!loggedUser || loggedUser.perfil !== "admin") {
+      showSnackbar("Acesso negado. Área restrita a administradores.", "error");
+      setTimeout(() => (window.location.href = "../home/home.html"), 2000);
+      return;
+    }
 
-  const usuarioLogado = JSON.parse(loggedUserRaw);
-  if (usuarioLogado.perfil !== "cliente") {
-    showSnackbar("Área restrita a administradores.", "error");
-    setTimeout(() => (window.location.href = "../home/home.html"), 2000);
-    return;
-  }
-
-  // 2. Carrega a carga inicial completa do banco relacional plano
-  await inicializarDadosPainel();
-  setupFiltrosEventos();
+    await inicializarDadosPainel();
+    setupFiltrosEventos();
+  }, "Acesso restrito. Faça login como administrador para gerenciar as vendas.");
 });
 
+// Realiza a carga inicial massiva cruzando os nós do banco relacional plano
 async function inicializarDadosPainel() {
   try {
     showSnackbar("Carregando base de vendas...", "info");
@@ -50,14 +47,14 @@ async function inicializarDadosPainel() {
       getDocs(collection(database, "usuarios")),
     ]);
 
-    // Salva usuários em dicionário para consulta O(1)
+    // Dicionário O(1) para mapear dados cadastrais dos clientes
     usuariosSnapshot.forEach((d) => (usuariosMap[d.id] = d.data()));
 
-    // Salva variantes em dicionário para consulta O(1)
+    // Dicionário O(1) para resolução de SKUs de variantes
     const variantesMap = {};
     variantesSnapshot.forEach((d) => (variantesMap[d.id] = d.data()));
 
-    // Agrupa itens comprados por ID da venda
+    // Indexa as linhas da tabela pivot produto_vendas agrupando-as por 'venda_id'
     itensPorVendaMap = {};
     produtoVendasSnapshot.forEach((docSnap) => {
       const data = docSnap.data();
@@ -79,16 +76,15 @@ async function inicializarDadosPainel() {
       });
     });
 
-    // Mapeia todas as vendas
+    // Mapeia o cabeçalho de vendas para o array de memória
     vendasGerais = [];
     vendasSnapshot.forEach((docSnap) => {
       vendasGerais.push({ id: docSnap.id, ...docSnap.data() });
     });
 
-    // Ordenação decrescente por ID da venda
+    // Ordenação Cronológica Reversa (Pedidos mais novos no topo) baseado na PK numérica
     vendasGerais.sort((a, b) => Number(b.id) - Number(a.id));
 
-    // Renderiza a primeira carga completa
     aplicarFiltroEHRender();
   } catch (error) {
     console.error("❌ Erro ao inicializar painel admin:", error);
@@ -96,11 +92,13 @@ async function inicializarDadosPainel() {
   }
 }
 
-// 3. Aplica a filtragem em memória baseado no chip ativo
+// Filtra a base local estática em cache evitando requisições redundantes de rede
 function aplicarFiltroEHRender() {
   const container = document.getElementById("admin-orders-container");
   const emptyMessage = document.getElementById("no-orders-message");
   const countTxt = document.getElementById("orders-count");
+
+  if (!container) return;
 
   let vendasFiltradas = [...vendasGerais];
 
@@ -113,7 +111,7 @@ function aplicarFiltroEHRender() {
   if (countTxt) countTxt.textContent = String(vendasFiltradas.length);
 
   if (vendasFiltradas.length === 0) {
-    if (container) container.innerHTML = "";
+    container.innerHTML = "";
     if (emptyMessage) emptyMessage.style.display = "block";
     return;
   }
@@ -122,11 +120,14 @@ function aplicarFiltroEHRender() {
   renderizarVendasPainel(vendasFiltradas, container);
 }
 
+// Renderização via Fragmento Atômico para impedir engasgos visuais por múltiplos reflows do DOM
 function renderizarVendasPainel(lista, container) {
   const cardTemplate = document.getElementById("template-admin-order-card");
   const itemTemplate = document.getElementById("template-admin-order-item");
 
-  container.innerHTML = "";
+  if (!cardTemplate || !itemTemplate) return;
+
+  const fragmentoVisual = document.createDocumentFragment();
 
   lista.forEach((venda) => {
     const cardClone = cardTemplate.content.cloneNode(true);
@@ -135,7 +136,6 @@ function renderizarVendasPainel(lista, container) {
       nome: "Cliente Desconhecido",
     };
 
-    // Popula metadados
     cardClone.querySelector(".order-id").textContent =
       `#${vendaId.padStart(4, "0")}`;
     cardClone.querySelector(".order-client-name").textContent = cliente.nome;
@@ -146,16 +146,13 @@ function renderizarVendasPainel(lista, container) {
       currency: "BRL",
     });
 
-    // Trata a badge de status nativa
     const statusBadge = cardClone.querySelector(".order-status-badge");
     statusBadge.textContent = venda.status;
     statusBadge.className = `order-status-badge status-${venda.status.toLowerCase()}`;
 
-    // Seta o valor corrente selecionado no Dropdown de modificação
     const selectStatus = cardClone.querySelector(".status-change-select");
     selectStatus.value = venda.status.toLowerCase();
 
-    // Injeta os itens comprados
     const itemsListContainer = cardClone.querySelector(
       ".order-products-rows-list",
     );
@@ -177,17 +174,20 @@ function renderizarVendasPainel(lista, container) {
       itemsListContainer.appendChild(itemClone);
     });
 
-    // --- EVENTO: Modificar Status pelo Dropdown ---
+    // Observa e dispara mutações imediatas de status no dropdown
     selectStatus.addEventListener("change", async (e) => {
       const novoStatus = e.target.value;
       await modificarStatusNoBanco(vendaId, novoStatus);
     });
 
-    container.appendChild(cardClone);
+    fragmentoVisual.appendChild(cardClone);
   });
+
+  container.innerHTML = "";
+  container.appendChild(fragmentoVisual);
 }
 
-// 4. Salva a modificação do Admin direto no Firestore documento correspondente
+// Atualiza o documento específico na coleção "vendas" e sincroniza o cache local
 async function modificarStatusNoBanco(vendaId, novoStatus) {
   try {
     const vendaRef = doc(database, "vendas", vendaId);
@@ -201,7 +201,7 @@ async function modificarStatusNoBanco(vendaId, novoStatus) {
       "success",
     );
 
-    // Sincroniza o estado local para evitar re-leitura do banco inteiro
+    // Mutação reativa no estado em memória para evitar um re-fetch total da base no Firestore
     const vendaLocal = vendasGerais.find((v) => v.id === vendaId);
     if (vendaLocal) vendaLocal.status = novoStatus;
 
@@ -212,7 +212,6 @@ async function modificarStatusNoBanco(vendaId, novoStatus) {
   }
 }
 
-// 5. Configura o clique nas Abas Superiores
 function setupFiltrosEventos() {
   const tabs = document.querySelectorAll(".status-tab");
   tabs.forEach((tab) => {
@@ -220,7 +219,7 @@ function setupFiltrosEventos() {
       tabs.forEach((t) => t.classList.remove("active"));
       tab.classList.add("active");
 
-      filtroStatusAtual = tab.getAttribute("data-status");
+      filtroStatusAtual = tab.getAttribute("data-status").toLowerCase();
       aplicarFiltroEHRender();
     });
   });

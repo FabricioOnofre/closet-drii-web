@@ -3,7 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Contato | Closet Drii</title>
+    <title>Fale Conosco | Closet Drii</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
     <link rel="stylesheet" href="../../shared/css/global.css" />
     <link rel="stylesheet" href="./contact.css" />
   </head>
@@ -11,35 +15,22 @@
   <body>
     <main class="contact-wrapper">
       <header class="page-header">
-        <div class="header-content">
-          <span class="contact-badge">Fale Conosco</span>
-          <h1>Estamos aqui para ajudar</h1>
-          <p>
-            Dúvidas sobre pedidos, tamanhos ou quer apenas deixar um feedback?
-            Escolha um canal ou preencha o formulário.
-          </p>
-        </div>
+        <span class="contact-badge">Atendimento</span>
+        <h1>Fale Conosco</h1>
+        <p>
+          Tem alguma dúvida sobre o seu pedido, tamanhos ou quer enviar uma
+          sugestão? Nossa equipe está pronta para te ouvir.
+        </p>
       </header>
 
       <div class="contact-layout">
         <aside class="contact-info">
           <div class="info-card">
             <div class="info-icon">
-              <i class="fab fa-whatsapp"></i>
+              <i class="fas fa-envelope"></i>
             </div>
             <div class="info-details">
-              <h3>WhatsApp</h3>
-              <p>(11) 99999-9999</p>
-              <span>Segunda a Sexta, das 9h às 18h</span>
-            </div>
-          </div>
-
-          <div class="info-card">
-            <div class="info-icon">
-              <i class="far fa-envelope"></i>
-            </div>
-            <div class="info-details">
-              <h3>E-mail</h3>
+              <h3>E-mail Oficial</h3>
               <p>contato@closetdrii.com.br</p>
               <span>Respondemos em até 24h úteis</span>
             </div>
@@ -47,65 +38,72 @@
 
           <div class="info-card">
             <div class="info-icon">
-              <i class="fab fa-instagram"></i>
+              <i class="fab fa-whatsapp"></i>
             </div>
             <div class="info-details">
-              <h3>Instagram</h3>
-              <p>@closet_drii</p>
-              <span>Acompanhe as novidades diárias</span>
+              <h3>WhatsApp</h3>
+              <p>(19) 99999-9999</p>
+              <span>Seg à Sex, das 9h às 18h</span>
             </div>
           </div>
         </aside>
 
         <section class="form-section">
-          <h2>Envie uma mensagem</h2>
+          <h2>Envie uma Mensagem</h2>
 
-          <form id="contact-form" novalidate>
+          <form id="contact-store-form">
             <div class="form-group">
-              <label for="name">Nome Completo</label>
+              <label for="contact-nome">Nome Completo</label>
               <input
                 type="text"
-                id="name"
-                placeholder="Ex: Maria Silva"
+                id="contact-nome"
                 required
+                placeholder="Ex: Maria Eduarda Silva"
               />
             </div>
 
             <div class="form-group">
-              <label for="email">E-mail</label>
+              <label for="contact-email">E-mail</label>
               <input
                 type="email"
-                id="email"
-                placeholder="Ex: maria@email.com"
+                id="contact-email"
                 required
+                placeholder="Ex: maria.silva@email.com"
               />
             </div>
 
             <div class="form-group">
-              <label for="subject">Assunto</label>
-              <select id="subject">
-                <option value="duvida">Dúvidas sobre Peças</option>
-                <option value="pedido">Status do Pedido</option>
-                <option value="troca">Trocas e Devoluções</option>
-                <option value="sugestao">Sugestões / Outros</option>
+              <label for="contact-assunto">Assunto do Atendimento</label>
+              <select id="contact-assunto" required>
+                <option value="" disabled selected hidden>
+                  Selecione um motivo...
+                </option>
+                <option value="duvidas_produto">Dúvidas sobre Looks</option>
+                <option value="status_pedido">Status do meu Pedido</option>
+                <option value="trocas_devolucoes">Trocas e Devoluções</option>
+                <option value="outros">Outros Assuntos</option>
               </select>
             </div>
 
             <div class="form-group">
-              <label for="message">Mensagem</label>
+              <label for="contact-mensagem">Mensagem</label>
               <textarea
-                id="message"
+                id="contact-mensagem"
                 rows="5"
-                placeholder="Escreva aqui detalhadamente o que precisa..."
                 required
+                placeholder="Conte detalhadamente como podemos te ajudar..."
               ></textarea>
             </div>
 
-            <button type="submit" class="btn-submit">Enviar Mensagem</button>
+            <button type="submit" class="btn-submit">
+              <i class="fas fa-paper-plane"></i> Enviar Mensagem
+            </button>
           </form>
         </section>
       </div>
     </main>
+
+    <div id="snackbar-placeholder"></div>
 
     <script type="module" src="../../utils/loader.js"></script>
     <script type="module" src="./contact.js"></script>

@@ -1,9 +1,9 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap");
 
 :root {
-  --primary: #BF5E81;
+  --primary: #bf5e81;
   --primary-dark: #9f4d6b;
-  --secondary: #CD7068;
+  --secondary: #cd7068;
   --bg: #fff7f7;
   --card: #ffffff;
   --text: #2b2b2b;
@@ -20,13 +20,14 @@
 }
 
 body {
-  font-family: 'Outfit', sans-serif;
+  font-family: "Outfit", sans-serif;
   background: var(--bg);
   color: var(--text);
 }
 
 .contact-wrapper {
   padding: calc(110px) 32px 40px;
+  max-width: 1300px;
   margin: auto;
 }
 
@@ -35,7 +36,11 @@ body {
   margin-bottom: 40px;
   padding: 50px;
   border-radius: var(--radius);
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.55));
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.85),
+    rgba(255, 255, 255, 0.55)
+  );
   backdrop-filter: blur(18px);
   border: 1px solid rgba(255, 255, 255, 0.5);
   box-shadow: var(--shadow);
@@ -135,6 +140,7 @@ body {
   padding: 45px;
   border-radius: var(--radius);
   box-shadow: var(--shadow);
+  border: 1px solid rgba(255, 255, 255, 0.6);
 }
 
 .form-section h2 {
@@ -175,14 +181,14 @@ body {
 .form-group textarea:focus {
   border-color: var(--primary);
   background: white;
-  box-shadow: 0 0 0 4px rgba(191, 94, 129, 0.1);
+  box-shadow: 0 0 0 4px rgba(191, 94, 129, 0.08);
 }
 
 .form-group textarea {
   resize: vertical;
 }
 
-/* BOTÃO SUBMIT */
+/* BOTÃO SUBMIT COM GRADIENTE */
 .btn-submit {
   width: 100%;
   padding: 16px;
@@ -195,7 +201,11 @@ body {
   background: linear-gradient(135deg, var(--primary), var(--secondary));
   color: white;
   box-shadow: 0 10px 24px rgba(191, 94, 129, 0.22);
-  transition: 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.3s ease;
 }
 
 .btn-submit:hover {
@@ -203,14 +213,22 @@ body {
   box-shadow: 0 14px 28px rgba(191, 94, 129, 0.3);
 }
 
-/* RESPONSIVIDADE */
-@media(max-width: 1024px) {
+.btn-submit:disabled {
+  background: var(--border);
+  color: var(--muted);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* RESPONSIVIDADE COMPLETA */
+@media (max-width: 1024px) {
   .contact-layout {
     grid-template-columns: 1fr;
   }
 }
 
-@media(max-width: 768px) {
+@media (max-width: 768px) {
   .contact-wrapper {
     padding: 120px 18px 30px;
   }

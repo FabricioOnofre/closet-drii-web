@@ -101,19 +101,80 @@
             </div>
 
             <button id="btn-checkout" class="btn-primary checkout-btn">
+              <i class="fab fa-whatsapp"> </i>
               Finalizar Compra
             </button>
 
-            <a
-              href="../produtos/produtos.html"
-              class="continue-shopping"
-            >
+            <a href="../produtos/produtos.html" class="continue-shopping">
               <i class="fas fa-arrow-left"></i> Continuar Comprando
             </a>
           </div>
         </aside>
       </div>
     </main>
+
+    <div
+      id="checkout-instructions-modal"
+      class="checkout-modal-overlay"
+      style="display: none"
+    >
+      <div class="checkout-modal-card">
+        <header class="checkout-modal-header">
+          <h2><i class="fab fa-whatsapp"></i> Pedido Pré-Reservado!</h2>
+          <button id="btn-close-checkout-modal" class="checkout-close-x">
+            &times;
+          </button>
+        </header>
+
+        <div class="checkout-modal-body">
+          <p class="checkout-intro-text">
+            Seu pedido <strong id="modal-txt-id">#0000</strong> de
+            <strong id="modal-txt-total">R$ 0,00</strong> foi gerado com sucesso
+            e agora consta como
+            <span class="checkout-badge-pending">PENDENTE</span> no nosso
+            sistema.
+          </p>
+
+          <div class="checkout-flow-box">
+            <h3>📌 Como funciona o fluxo de finalização?</h3>
+            <ul>
+              <li>
+                <strong>1. Alinhamento Direto:</strong> O pagamento e os
+                detalhes de entrega são combinados diretamente no WhatsApp com
+                nossa equipe.
+              </li>
+              <li>
+                <strong>2. Atualização de Status:</strong> Assim que o acerto
+                for concluído, o status do pedido mudará no painel do site.
+              </li>
+              <li>
+                <strong>3. Acompanhamento:</strong> Você pode monitorar essa
+                evolução acessando o seu
+                <strong>Histórico de Compras</strong> diretamente pela página de
+                Perfil.
+              </li>
+            </ul>
+            <p class="checkout-danger-text">
+              ⚠️
+              <em
+                >Atenção: Caso o pagamento não seja efetuado no atendimento, a
+                reserva do estoque será cancelada.</em
+              >
+            </p>
+          </div>
+        </div>
+
+        <footer class="checkout-modal-footer">
+          <button
+            type="button"
+            id="btn-modal-whatsapp-redirect"
+            class="checkout-btn-submit-modal"
+          >
+            <i class="fab fa-whatsapp"></i> Ir para o WhatsApp e Chamar Equipe
+          </button>
+        </footer>
+      </div>
+    </div>
 
     <div id="snackbar-placeholder"></div>
 

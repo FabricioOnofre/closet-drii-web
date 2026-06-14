@@ -202,14 +202,12 @@ function atualizarResumoFinanceiro() {
 // Processa a finalização da compra diretamente no Firebase
 // Utiliza uma transação para garantir que estoque, venda e itens sejam atualizados juntos
 // evitando inconsistências caso ocorra algum erro no meio do processo
+// Processa a esteira atômica de Checkout garantindo isolamento ACID sobre concorrência de estoque
 async function processarCheckoutBancoDados() {
   const btnCheckout = document.getElementById("btn-checkout");
+  const loggedUserRaw = localStorage.getItem("loggedUser");
 
-  const usuarioLS = localStorage.getItem("loggedUser");
-  const usuario = usuarioLS ? JSON.parse(usuarioLS) : null;
-
-
-  if (!usuario) {
+  if (!loggedUserRaw) {
     showSnackbar(
       "Você precisa estar logado para finalizar uma compra.",
       "invalid",
@@ -222,15 +220,16 @@ async function processarCheckoutBancoDados() {
     return;
   }
 
-  // Bloqueia múltiplos cliques enquanto a compra está sendo processada
+  const usuarioLogado = JSON.parse(loggedUserRaw);
   if (btnCheckout) btnCheckout.disabled = true;
   showSnackbar("Processando seu pedido, aguarde...", "info");
 
-  try {
-    // Calcula o valor final da compra antes de salvar no banco
-    const totalPedido = calcularTotal();
+  let vendaIdGerado = null;
+  const totalPedido = calcularTotal();
+  const nomeCliente =
+    usuarioLogado.nome || usuarioLogado.email.split("@")[0];
 
-    // Cria um timestamp único para registrar criação e atualização
+  try {
     const timestampAtual = new Date().toISOString();
 
     // Executa todas as alterações como uma única operação atômica
@@ -264,6 +263,8 @@ async function processarCheckoutBancoDados() {
 
       // Cria todas as referências das variantes compradas
       // Isso permite buscar os estoques em paralelo
+      vendaIdGerado = proximoVendaId;
+
       const referenciasVariantes = itensCarrinho.map((item) =>
         doc(database, "produto_variantes", String(item.id_variante)),
       );
@@ -310,7 +311,7 @@ async function processarCheckoutBancoDados() {
       // Representa o pedido realizado pelo usuário
       const novaVendaRef = doc(database, "vendas", String(proximoVendaId));
       transaction.set(novaVendaRef, {
-        usuario_id: String(usuario.uid),
+        usuario_id: String(usuarioLogado.uid),
         valor_total: totalPedido,
         status: "pendente",
         endereco_entrega_id: "1",
@@ -357,6 +358,9 @@ async function processarCheckoutBancoDados() {
       "Pedido finalizado com sucesso! Estoque atualizado.",
       "success",
     );
+
+    abrirModalInstrucoesCheckout(vendaIdGerado, totalPedido, nomeCliente);
+
     itensCarrinho = [];
     localStorage.removeItem(CART_STORAGE_KEY);
     renderizarCarrinho();
@@ -383,3 +387,70 @@ document.addEventListener("DOMContentLoaded", () => {
     .getElementById("btn-checkout")
     ?.addEventListener("click", processarCheckoutBancoDados);
 });
+
+function enviarMensagemWhatsApp(idCompra, total, nomeCliente) {
+  // Substitua pelo número oficial da Closet Drii (DDI + DDD + Número apenas)
+  const numeroLoja = "551994974618";
+
+  const totalFormatado = total.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+
+  // Template com formatação de negritos (*) e tópicos para leitura fluida
+  const textoMensagem =
+    `🛍️ *NOVO PEDIDO - CLOSET DRII* 🛍️%0A%0A` +
+    `Olá! Meu nome é *${nomeCliente}* e acabei de finalizar um pedido no site.%0A%0A` +
+    `📌 *DADOS DO PEDIDO:*%0A` +
+    `• *Código:* %23${String(idCompra).padStart(4, "0")}%0A` +
+    `• *Total:* ${totalFormatado}%0A%0A` +
+    `⚙️ *PRÓXIMOS PASSOS:*%0A` +
+    `O meu pedido consta como *PENDENTE* no site. Gostaria de combinar por aqui os detalhes do *pagamento e da entrega* com a equipe.%0A%0A` +
+    `⚠️ _Estou ciente de que, assim que finalizarmos o acerto, o status mudará no painel do site. Caso o pagamento não seja realizado, a compra será cancelada._%0A%0A` +
+    `✨ Fico no aguardo do atendimento!`;
+
+  const urlWhatsApp = `https://api.whatsapp.com/send?phone=${numeroLoja}&text=${textoMensagem}`;
+
+  // Abre o aplicativo ou aba do WhatsApp Web sem quebrar a experiência do carrinho
+  window.open(urlWhatsApp, "_blank");
+}
+
+function abrirModalInstrucoesCheckout(idCompra, total, nomeCliente) {
+  const modal = document.getElementById("checkout-instructions-modal");
+  const txtId = document.getElementById("modal-txt-id");
+  const txtTotal = document.getElementById("modal-txt-total");
+  const btnRedirect = document.getElementById("btn-modal-whatsapp-redirect");
+  const btnClose = document.getElementById("btn-close-checkout-modal");
+
+  if (!modal) return;
+
+  // Atualiza as strings de dados do resumo nos nós do HTML
+  if (txtId) txtId.textContent = `#${String(idCompra).padStart(4, "0")}`;
+  if (txtTotal)
+    txtTotal.textContent = total.toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    });
+
+  // Exibe o modal na tela usando a propriedade flex global
+  modal.style.display = "flex";
+
+  // Cria uma função isolada para limpar os ouvintes e disparar o app do Whats
+  const executarRedirecionamento = () => {
+    modal.style.display = "none";
+    enviarMensagemWhatsApp(idCompra, total, nomeCliente);
+
+    // Remove os ouvintes pontuais para evitar acúmulos na memória
+    btnRedirect.removeEventListener("click", executarRedirecionamento);
+    btnClose?.removeEventListener("click", fecharModalDireto);
+  };
+
+  const fecharModalDireto = () => {
+    modal.style.display = "none";
+    btnRedirect.removeEventListener("click", executarRedirecionamento);
+    btnClose?.removeEventListener("click", fecharModalDireto);
+  };
+
+  btnRedirect.addEventListener("click", executarRedirecionamento);
+  btnClose?.addEventListener("click", fecharModalDireto);
+}

@@ -57,9 +57,8 @@ document.addEventListener("DOMContentLoaded", () => {
       localStorage.setItem("loggedUser", JSON.stringify(dadosCompletosUsuario));
 
       setTimeout(() => {
-        // Se for admin, você pode redirecionar para um painel administrativo futuramente
         if (dadosCompletosUsuario.perfil === "admin") {
-          console.log("Usuário administrador identificado.");
+          showSnackbar("Bem-vindo, administrador!", "success");
         }
         window.location.href = "../home/home.html";
       }, 1500);
