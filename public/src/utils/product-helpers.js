@@ -93,7 +93,7 @@ export function renderizarComponenteCards(lista, containerId) {
     // Define imagem principal/padrão
     const imagemPadrao = produto.variantes && produto.variantes[0] && produto.variantes[0].imagem_url
         ? produto.variantes[0].imagem_url
-        : "../../assets/img/logo.jpg";
+        : "../../assets/img/logo.png";
         
     const imgElement = clone.querySelector(".produto-img");
     if (imgElement) {

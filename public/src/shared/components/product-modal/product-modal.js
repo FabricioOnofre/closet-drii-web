@@ -140,7 +140,7 @@ function selectColor(cor) {
       variantesDaCor[0].imagem_url;
   } else {
     document.getElementById("modal-product-img").src =
-      "../../assets/img/logo.jpg";
+      "../../assets/img/logo.png";
   }
 
   buildSizeSelectors(variantesDaCor);
@@ -255,7 +255,7 @@ function handleAddToCart() {
     cor: selectedColor,
     tamanho: selectedSize,
     quantidade: selectedQty,
-    imagem_url: varianteSelecionada.imagem_url || "../../assets/img/logo.jpg",
+    imagem_url: varianteSelecionada.imagem_url || "../../assets/img/logo.png",
   };
 
   // Envia diretamente para o gerenciador do carrinho (localStorage)

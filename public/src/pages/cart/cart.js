@@ -100,7 +100,7 @@ function renderizarCarrinho() {
     // Atualiza imagem do produto com fallback caso não exista
     const imgElement = clone.querySelector(".cart-img");
     if (imgElement) {
-      imgElement.src = item.imagem_url || "../../assets/img/logo.jpg";
+      imgElement.src = item.imagem_url || "../../assets/img/logo.png";
       imgElement.alt = item.nome;
     }
 

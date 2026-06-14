@@ -1,13 +1,14 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-analytics.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
-// Garantindo a mesma versão exata do core do Firebase
+import { getAuth, connectAuthEmulator } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 import {
   getFirestore,
   doc,
   onSnapshot,
   setDoc,
+  connectFirestoreEmulator,
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+import { getStorage, connectStorageEmulator } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBcZxGVcS_QUE_F_FoRg36UH4jRfBojzrY",
@@ -23,5 +24,13 @@ const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const auth = getAuth(app);
 const database = getFirestore(app);
+const storage = getStorage(app);
 
-export { auth, analytics, database };
+// Conecta aos emuladores locais quando rodando em localhost
+if (location.hostname === "127.0.0.1" || location.hostname === "localhost") {
+  connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
+  connectFirestoreEmulator(database, "127.0.0.1", 8080);
+  connectStorageEmulator(storage, "127.0.0.1", 9199);
+}
+
+export { auth, analytics, database, storage };
