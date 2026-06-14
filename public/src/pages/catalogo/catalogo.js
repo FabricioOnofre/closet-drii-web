@@ -1,21 +1,17 @@
 import { protegerRota } from "../../utils/auth-helpers.js";
-import { database, storage } from "../../utils/firebase-config.js";
+import { database } from "../../utils/firebase-config.js";
 import { buscarProdutosEstruturados } from "../../utils/product-helpers.js";
 import { showSnackbar } from "../../shared/components/snackbar/snackbar.js";
 import {
   doc,
-  getDoc,
   setDoc,
   deleteDoc,
   collection,
   getDocs,
   runTransaction,
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
-import {
-  ref,
-  uploadBytes,
-  getDownloadURL,
-} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
+
+const IMGBB_API_KEY = "e16a8e8df3138d20de50819d35d81039";
 
 // Estados voláteis locais para controle de concorrência, filtros e cache de UI
 let produtosCache = [];
@@ -351,17 +347,22 @@ function renderizarLinhasVariantesModal() {
   container.appendChild(fragment);
 }
 
-// Faz upload da imagem para o Storage e retorna a URL pública
-async function uploadImagemVariante(rowId, produtoId) {
+// Faz upload da imagem para o ImgBB e retorna a URL pública
+async function uploadImagemVariante(rowId) {
   const file = arquivosPendentes[rowId];
   if (!file) return null;
 
-  const extensao = file.name.split(".").pop();
-  const path = `produtos/${produtoId}/${rowId}.${extensao}`;
-  const storageRef = ref(storage, path);
-  await uploadBytes(storageRef, file);
-  const url = await getDownloadURL(storageRef);
-  return url;
+  const formData = new FormData();
+  formData.append("image", file);
+
+  const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+    method: "POST",
+    body: formData,
+  });
+
+  const data = await response.json();
+  if (!data.success) throw new Error("Falha no upload da imagem para ImgBB.");
+  return data.data.url;
 }
 
 // Gravação atômica unificada: ID incremental para novos produtos e suas respectivas variantes
@@ -372,13 +373,9 @@ async function executarInsercaoCompleta(dadosProduto) {
       throw new Error("Falha: É necessário adicionar pelo menos uma variante.");
     }
 
-    // Busca o próximo ID do produto para usar no path do Storage
-    const prodCounterSnap = await getDoc(doc(database, "contadores", "produtos"));
-    const proximoProdIdPreview = prodCounterSnap.exists() ? prodCounterSnap.data().atual + 1 : 1;
-
     // Faz upload das imagens antes da transação
     for (const variante of variantesFormState) {
-      const url = await uploadImagemVariante(variante.id, proximoProdIdPreview);
+      const url = await uploadImagemVariante(variante.id);
       if (url) variante.imagem_url = url;
     }
 
@@ -447,7 +444,7 @@ async function executarUpdateCompleto(produtoId, dadosProduto) {
 
     // Faz upload de imagens novas antes de salvar
     for (const variante of variantesFormState) {
-      const url = await uploadImagemVariante(variante.id, produtoId);
+      const url = await uploadImagemVariante(variante.id);
       if (url) variante.imagem_url = url;
     }
 
