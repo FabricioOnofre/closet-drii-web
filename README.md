@@ -1,3 +1,7 @@
+# link para o site hospedado no firebase
+
+https://closet-drii-web.web.app
+
 # 🛍️ JJF Solutions - Closet Dri
 
 Projeto de e-commerce desenvolvido como parte do curso de **Análise e Desenvolvimento de Sistemas (ADS)** no **IFSP Campinas**. A plataforma visa atender pequenos negócios, permitindo a visualização de produtos, gerenciamento de carrinho e um fluxo de checkout com envio de comprovante.
